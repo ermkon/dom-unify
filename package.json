@@ -1,0 +1,32 @@
+{
+  "name": "dom-unify",
+  "version": "1.0.0",
+  "description": "A lightweight JavaScript library for intuitive, chainable DOM manipulation. DOMChain simplifies creating and managing DOM structures with a clean, readable API. Easily add elements, navigate hierarchies, duplicate nodes, and copy/paste subtrees. Ideal for rapid prototyping and small projects requiring straightforward DOM operations.",
+  "keywords": [
+    "dom",
+    "dom-manipulation",
+    "dom-builder",
+    "dom-navigation",
+    "chainable",
+    "create-element",
+    "lightweight",
+    "simple",
+    "json",
+    "frontend"
+  ],
+  "homepage": "https://github.com/ermkon/dom-unify#readme",
+  "bugs": {
+    "url": "https://github.com/ermkon/dom-unify/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ermkon/dom-unify.git"
+  },
+  "license": "MIT",
+  "author": "ermkon",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
