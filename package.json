@@ -1,7 +1,7 @@
 {
   "name": "dom-unify",
-  "version": "1.0.0",
-  "description": "A lightweight JavaScript library for intuitive, chainable DOM manipulation. DOMChain simplifies creating and managing DOM structures with a clean, readable API. Easily add elements, navigate hierarchies, duplicate nodes, and copy/paste subtrees. Ideal for rapid prototyping and small projects requiring straightforward DOM operations.",
+  "version": "1.0.1",
+  "description": "A JavaScript library for manipulating the DOM with a chainable, intuitive API. It simplifies creating, modifying, and navigating DOM elements.",
   "keywords": [
     "dom",
     "dom-manipulation",
