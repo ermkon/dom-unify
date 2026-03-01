@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Removed
 - `downloadFile()`, `loadFile()`, `save()`, `load()` — outside core DOM scope
+- `.sync()`, `.unsync()` — outside core DOM scope
 
 ### Added
 - TypeScript source + declarations (`dist/index.d.ts`)
@@ -20,7 +21,6 @@ All notable changes to this project will be documented in this file.
 - `.debug()` / `.debug('steps')` — state inspector + step logging
 - `.enter(selector)` — filter direct children by CSS selector
 - `_cloneWithState()` — form-state-preserving clone
-- `.sync(key)` / `.unsync(key)` — DOM ↔ storage (local/session/indexeddb)
 - `debug('steps')` disabled in production (`NODE_ENV=production`)
 
 ### Fixed
@@ -30,7 +30,6 @@ All notable changes to this project will be documented in this file.
 - `safeHTMLToElements` — simplified sanitization
 - Removed expensive `JSON.stringify` circular-ref check
 - Removed arbitrary `getSize() > 100000` check
-- All error messages in English
 
 ## [1.1.0] — 2025-07-10
 

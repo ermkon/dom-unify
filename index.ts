@@ -60,13 +60,6 @@ export interface SetProps {
   dataset?: Record<string, string>;
 }
 
-export interface SyncOptions {
-  storage?: 'local' | 'session' | 'indexeddb';
-  debounce?: number;
-  mode?: 'nested' | 'flat';
-  onSync?: ((data: unknown) => void) | null;
-}
-
 export interface CollectOptions {
   includeDisabled?: boolean;
   excludeEmpty?: boolean;
@@ -122,7 +115,6 @@ class DomUnify {
   elementHistory: (Element | DocumentFragment)[][];
   _eventHandlers: WeakMap<Element, Record<string, HandlerEntry[]>>;
   _debugMode: boolean;
-  _syncCleanup?: Map<string, () => void>;
 
   constructor(root?: DomRoot) {
     this.currentElements =
@@ -788,36 +780,6 @@ class DomUnify {
       }
     }
     return clone;
-  }
-
-  // --- IndexedDB helpers for .sync() ---
-  static _idbOpen(): Promise<IDBDatabase> {
-    return new Promise((resolve, reject) => {
-      const req = indexedDB.open('dom-unify-sync', 1);
-      req.onupgradeneeded = () => req.result.createObjectStore('data');
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  static async _idbGet(key: string): Promise<unknown> {
-    const db = await DomUnify._idbOpen();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction('data', 'readonly');
-      const req = tx.objectStore('data').get(key);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-
-  static async _idbSet(key: string, value: unknown): Promise<void> {
-    const db = await DomUnify._idbOpen();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction('data', 'readwrite');
-      tx.objectStore('data').put(value, key);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
   }
 
   static addToElements(
@@ -1528,90 +1490,6 @@ class DomUnify {
     }
   }
 
-  // --- Sync: bidirectional DOM ↔ storage ---
-  sync(key: string, options: SyncOptions = {}): this {
-    if (!key || typeof key !== 'string') return this;
-
-    const {
-      storage = 'local',
-      debounce: debounceMs = 300,
-      mode = 'nested',
-      onSync = null,
-    } = options;
-
-    const targets = [...this.currentElements] as Element[];
-    const collectData = () => {
-      const data =
-        mode === 'flat'
-          ? targets.map((el) => DomUnify._collectFlat(el))
-          : targets.map((el) => DomUnify._collectNested(el));
-      return data.length === 1 ? data[0] : data;
-    };
-
-    if (storage === 'indexeddb' && typeof indexedDB !== 'undefined') {
-      DomUnify._idbGet(key)
-        .then((data) => {
-          if (data)
-            for (const el of targets)
-              DomUnify._fillElement(el, data as Record<string, unknown>);
-        })
-        .catch(() => {});
-    } else {
-      const store =
-        storage === 'session' ? sessionStorage : localStorage;
-      const raw = store.getItem(key);
-      if (raw) {
-        try {
-          const data = JSON.parse(raw);
-          for (const el of targets) DomUnify._fillElement(el, data);
-        } catch {
-          // ignore invalid JSON
-        }
-      }
-    }
-
-    let timeout: ReturnType<typeof setTimeout>;
-    const onChange = () => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        const data = collectData();
-        if (storage === 'indexeddb' && typeof indexedDB !== 'undefined') {
-          DomUnify._idbSet(key, data).catch(() => {});
-        } else {
-          const store =
-            storage === 'session' ? sessionStorage : localStorage;
-          store.setItem(key, JSON.stringify(data));
-        }
-        if (onSync) onSync(data);
-      }, debounceMs);
-    };
-
-    for (const el of targets) {
-      el.addEventListener('input', onChange);
-      el.addEventListener('change', onChange);
-    }
-
-    if (!this._syncCleanup) this._syncCleanup = new Map();
-    this._syncCleanup.set(key, () => {
-      clearTimeout(timeout);
-      for (const el of targets) {
-        el.removeEventListener('input', onChange);
-        el.removeEventListener('change', onChange);
-      }
-    });
-
-    this._logStep('sync');
-    return this;
-  }
-
-  unsync(key: string): this {
-    if (this._syncCleanup && this._syncCleanup.has(key)) {
-      this._syncCleanup.get(key)!();
-      this._syncCleanup.delete(key);
-    }
-    this._logStep('unsync');
-    return this;
-  }
 }
 
 function dom(root?: DomRoot): DomUnify {
