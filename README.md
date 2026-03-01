@@ -5,9 +5,10 @@
 [![bundle size](https://img.shields.io/bundlephobia/minzip/dom-unify)](https://bundlephobia.com/package/dom-unify)
 [![license](https://img.shields.io/npm/l/dom-unify.svg)](https://opensource.org/licenses/MIT)
 
-Chainable library that unifies all DOM operations into one fluent API.
-Context navigation with history and marks, nested data-binding for objects and forms,
-unique clipboard (copy/paste subtrees preserving form state), builder and utilities.
+dom-unify — цепочечная библиотека, которая унифицирует всю работу с DOM в одном fluent API.
+Контекстная навигация с историей и метками, nested data-binding для объектов и форм, уникальный clipboard (копирует/вставляет поддеревья с сохранением всех значений input, checkbox, select), builder и утилиты.
+
+Никаких фреймворков. Никакого VDOM. Просто чистый JS — в 3–5 раз быстрее писать сложные интерфейсы, админки, конфигураторы и браузерные расширения.
 
 **~6.5 kB gzipped** · Zero dependencies · TypeScript declarations included
 
@@ -34,7 +35,7 @@ import dom from 'dom-unify';
 
 ## Browser Compatibility
 
-Modern browsers: **Chrome 90+**, **Firefox 88+**, **Safari 14+**, **Edge 90+**. No polyfills required.
+Современные браузеры: **Chrome 90+**, **Firefox 88+**, **Safari 14+**, **Edge 90+**. Без полифиллов.
 
 ## Quick Start
 
@@ -64,11 +65,36 @@ That's it. `dom()` targets `<body>`, `.add()` creates elements (default tag is `
 
 ## Core Concepts
 
-**Context** — `dom()` always works with a current set of elements. Methods like `.enter()`, `.up()`, `.find()`, `.back()` change what you're pointing at. Methods like `.add()`, `.set()`, `.delete()` modify the elements you're pointing at.
+### Context
 
-**History** — navigation methods (`.enter()`, `.up()`, `.find()`) push the previous context onto a stack. Use `.back()` to restore it.
+`dom()` always works with a **current set of elements**. Navigation methods (`.enter()`, `.up()`, `.find()`, `.back()`) change what you're pointing at. Manipulation methods (`.add()`, `.set()`, `.delete()`) modify the elements you're pointing at.
 
-**Marks** — `.mark(name)` saves the current context by name. `.getMark(name)` restores it instantly. Works within the same chain instance.
+### History
+
+Navigation methods push the previous context onto a stack. Call `.back()` to restore it — like an undo for navigation.
+
+### Marks
+
+`.mark(name)` saves the current context by name. `.getMark(name)` restores it. A `'root'` mark is created automatically on instantiation.
+
+### Each `dom()` Is Separate
+
+Every `dom()` call creates an **independent instance** with its own context, history, marks, and buffer. They don't share state:
+
+```javascript
+const a = dom('.sidebar');
+const b = dom('.content');
+// a and b are completely independent — navigating in a doesn't affect b
+```
+
+To pass data between instances, use `.get()` to extract, then `.fill()` or `.add()` to apply:
+
+```javascript
+const data = dom('.source').get('nested')[0];
+dom('.target').fill(data);
+```
+
+---
 
 ## Examples
 
@@ -89,33 +115,25 @@ dom()
   .add({ tag: 'h2', text: 'Another card' });
 ```
 
-### Dynamic Interface with Events
+### Events
 
-`.on()` targets the last added element — no need to `.enter()` and `.back()`:
+`.on()` targets the last added element — no need for `.enter()` + `.back()`:
 
 ```javascript
-function addItem(e) {
-  dom(e.target)
-    .up('.list')
-    .add({ class: 'item', text: 'New item' });
-}
-
-function removeItem(e) {
-  dom(e.target).up('.item').delete();
-}
-
 dom()
   .add({ class: 'list' })
   .enter()
   .add({ tag: 'button', text: 'Add' })
-  .on('click', addItem)              // attached to the button, not the list
+  .on('click', (e) => {
+    dom(e.target).up('.list').add({ class: 'item', text: 'New item' });
+  })
   .add({ class: 'item', text: 'First item' })
   .enter()
   .add({ tag: 'button', text: '×' })
-  .on('click', removeItem);
+  .on('click', (e) => dom(e.target).up('.item').delete());
 ```
 
-### Fill and Collect Nested Data
+### Data Binding (fill + get)
 
 Use `data-key` for values and `data-container` for structure:
 
@@ -138,65 +156,35 @@ dom('.user-card').fill({
   address: { city: 'NYC', zip: '10001' }
 });
 
-// Collect back
+// Collect back — round-trip preserving structure
 const data = dom('.user-card').get('nested');
 // [{ name: 'Alice', role: 'Admin', address: { city: 'NYC', zip: '10001' } }]
 ```
 
-### Create Multiple Elements from Array
+### Create N Elements from Array
 
 ```javascript
-const itemConfig = {
-  tag: 'div', class: 'card',
-  children: [
+dom('.list').add(
+  { tag: 'div', class: 'card', children: [
     { tag: 'h3', 'data-key': 'title' },
     { tag: 'p', 'data-key': 'desc' }
+  ]},
+  [
+    { title: 'Card 1', desc: 'First' },
+    { title: 'Card 2', desc: 'Second' },
+    { title: 'Card 3', desc: 'Third' }
   ]
-};
-
-dom('.list').add(itemConfig, [
-  { title: 'Card 1', desc: 'First card' },
-  { title: 'Card 2', desc: 'Second card' },
-  { title: 'Card 3', desc: 'Third card' }
-]);
-// Creates 3 .card elements, each filled with its data
-```
-
-### Form: Fill and Read
-
-```javascript
-dom()
-  .add({ tag: 'form', class: 'login' })
-  .enter()
-  .add({ tag: 'input', attrs: { name: 'email', type: 'email' } })
-  .add({ tag: 'input', attrs: { name: 'password', type: 'password' } })
-  .add({ tag: 'button', text: 'Submit' })
-  .on('click', (e) => {
-    e.preventDefault();
-    const data = dom('.login').get({ mode: 'form' });
-    console.log(data); // [{ email: '...', password: '...' }]
-  });
-
-// Pre-fill from code
-dom('.login').fill({ email: 'user@example.com' });
+);
 ```
 
 ### Copy / Paste
 
 ```javascript
-dom()
-  .add({ class: 'source' })
-  .enter()
-  .add({ class: 'widget', text: 'Clone me' })
-  .copy()
-  .up()
-  .add({ class: 'target' })
-  .enter()
-  .paste()
-  .paste();
+dom('.widget').copy().up('.target').paste();    // append copy
+dom('.source').copy();
+dom('.target').paste('before');                 // insert before target
+dom('.item').cut().back().find('.other').paste(); // move element
 ```
-
-Result: `.target` gets two copies of `.widget`.
 
 ### Mark / getMark
 
@@ -209,10 +197,8 @@ dom()
   .enter()
   .add({ tag: 'nav', text: 'Menu' })
   .getMark('root')
-  .add({ class: 'content', text: 'Main area' });
+  .add({ class: 'content', text: 'Main' });
 ```
-
-`.getMark('root')` jumps back to `.container` — no matter how deep you navigated.
 
 ---
 
@@ -220,22 +206,13 @@ dom()
 
 ### `dom(root?)`
 
-Creates a new instance.
-
 | Argument | Description |
 |----------|-------------|
 | *(none)* | Targets `document.body` |
 | `HTMLElement` | Targets that element |
 | `'selector'` | Targets all matching elements |
 | `Document` | Targets `document.body` |
-| `null` | Creates a `DocumentFragment` |
-
-```javascript
-dom()                          // body
-dom('.card')                   // all elements with class "card"
-dom(document.getElementById('app'))  // specific element
-dom(null)                      // DocumentFragment (off-DOM)
-```
+| `null` | Creates a `DocumentFragment` (off-DOM) |
 
 ---
 
@@ -243,17 +220,9 @@ dom(null)                      // DocumentFragment (off-DOM)
 
 Adds elements to the current context. Default tag is `div`.
 
-**Config formats:**
+**Config formats:** object, array of objects, HTML string, JSON string.
 
-| Format | Example |
-|--------|---------|
-| Object | `{ tag: 'p', class: 'text', text: 'Hello' }` |
-| Array | `[{ tag: 'li', text: 'A' }, { tag: 'li', text: 'B' }]` |
-| HTML string | `'<p>Hello</p>'` |
-| JSON string | `'{"tag":"p","text":"Hello"}'` |
-| With children | `{ class: 'list', children: [{ tag: 'li', text: 'Item' }] }` |
-
-**Config object properties:**
+**Config properties:**
 
 | Property | Type | Description |
 |----------|------|-------------|
@@ -269,97 +238,40 @@ Adds elements to the current context. Default tag is `div`.
 | `events` | object | Event handlers `{ click: fn }` |
 | `children` | array | Nested elements |
 
-**Data parameter** — when `data` is an object, fills form inputs by `name` (existing behavior):
-
-```javascript
-dom('.form').add(
-  { tag: 'input', attrs: { name: 'city', type: 'text' } },
-  { city: 'Moscow' }
-);
-```
-
-When `data` is an **array**, creates one copy of the config per array item, each filled with its data:
+When `data` is an **array**, creates one copy per item, each filled:
 
 ```javascript
 dom('.list').add(
-  { tag: 'div', class: 'item', children: [{ tag: 'span', 'data-key': 'name' }] },
-  [{ name: 'Alice' }, { name: 'Bob' }, { name: 'Charlie' }]
+  { tag: 'li', 'data-key': 'name' },
+  [{ name: 'Alice' }, { name: 'Bob' }]
 );
-// Creates 3 .item divs. Empty array [] creates nothing.
 ```
 
-**Options:** `{ clearMissing: true }` — resets form fields not present in `data`.
-
-```javascript
-// Simple
-dom().add({ class: 'box', text: 'Hello' });
-
-// Multiple
-dom().add([
-  { tag: 'p', text: 'One' },
-  { tag: 'p', text: 'Two' }
-]);
-
-// Nested
-dom().add({
-  class: 'card',
-  children: [
-    { tag: 'h2', text: 'Title' },
-    { tag: 'p', text: 'Body' }
-  ]
-});
-
-// HTML
-dom().add('<ul><li>Item</li></ul>');
-
-// With styles
-dom().add({ tag: 'button', text: 'Click', styles: { color: 'white', background: 'blue' } });
-```
+**Options:** `{ clearMissing: true }` — resets form fields not in `data`.
 
 ---
 
 ### `.set(props, data?, options?)`
 
-Updates properties of all elements in the current context.
+Updates properties on current elements.
 
 | Property | Type | Description |
 |----------|------|-------------|
 | `text` | string | Sets `textContent` |
 | `html` | string | Sets `innerHTML` |
-| `class` | string | Sets `className` (or class modifier, see below) |
+| `class` | string | Sets `className` (or class modifier) |
 | `id` | string | Sets `id` |
 | `style` | object | Merges CSS styles |
 | `attr` | object | Sets attributes |
 | `dataset` | object | Sets `data-*` attributes |
 
-**Class modifiers** — prefix with `+`, `-`, or `!` to add, remove, or toggle classes:
+**Class modifiers** — prefix with `+`, `-`, or `!`:
 
 ```javascript
-dom('.card').set({ class: '+active' });        // classList.add('active')
-dom('.card').set({ class: '-hidden' });        // classList.remove('hidden')
-dom('.card').set({ class: '!visible' });       // classList.toggle('visible')
-dom('.card').set({ class: '+active -old !new' }); // multiple in one call
-dom('.card').set({ class: 'btn primary' });    // replace (no prefix = current behavior)
-```
-
-**Data parameter** — fills form inputs by `name` (same as `.add()`).
-
-```javascript
-// Set text
-dom('.title').set({ text: 'Updated' });
-
-// Set multiple props
-dom('.card').set({
-  class: 'card active',
-  style: { background: '#f0f0f0', border: '1px solid #ccc' },
-  attr: { 'data-id': '42' }
-});
-
-// Fill form
-dom('.form').set({}, { username: 'Alice', role: 'admin' });
-
-// Fill + clear missing fields
-dom('.form').set({}, { username: 'Alice' }, { clearMissing: true });
+dom('.card').set({ class: '+active' });         // add
+dom('.card').set({ class: '-hidden' });          // remove
+dom('.card').set({ class: '!visible' });         // toggle
+dom('.card').set({ class: '+active -old !new' }); // combined
 ```
 
 ---
@@ -368,74 +280,39 @@ dom('.form').set({}, { username: 'Alice' }, { clearMissing: true });
 
 Fills existing elements with data. Finds targets by `data-key` → `name` → `id`.
 
-For **non-form elements** (`span`, `h3`, etc. with `data-key`): sets `textContent`.
-For **form elements** (`input`, `select`, `textarea`): sets `value` (smart handling for radios, checkboxes, multi-selects).
+- Non-form elements: sets `textContent`
+- Form elements: sets `value` (smart radio/checkbox/select)
+- Nested objects: recurses into `[data-container]` elements
+- Array data: distributes `data[i]` → `currentElements[i]`
 
 ```javascript
-// Flat fill
 dom('.card').fill({ title: 'Hello', subtitle: 'World' });
-
-// Nested fill via data-container
-dom('.root').fill({
-  name: 'John',
-  address: { city: 'NYC', zip: '10001' }  // fills inside [data-container="address"]
-});
-
-// Array distribution: fills currentElements[i] with data[i]
-dom('.item').fill([{ name: 'A' }, { name: 'B' }, { name: 'C' }]);
+dom('.root').fill({ name: 'John', address: { city: 'NYC' } });
 ```
-
-**Key resolution order:** `data-key` → `name` → `id`.
-
-**Nesting:** if a data value is an object and a `[data-container]` with the matching name exists, `.fill()` recurses into it. Regular `div` wrappers without `data-container` are transparent.
-
-**Array values of objects throw an error** — use `.add(config, array)` to create repeated elements.
 
 ---
 
 ### `.get(arg?)`
 
-Reads elements or form data from the current context.
+Reads elements or data from the current context.
 
 | Argument | Returns |
 |----------|---------|
-| *(none)* | Array of current DOM elements |
-| `number` | Single element by index (supports negative) |
-| `'flat'` | Array of flat key-value objects (data-key → name → id) |
-| `'nested'` | Array of nested objects (respects `data-container` hierarchy) |
+| *(none)* | Array of DOM elements |
+| `number` | Single element by index (negative = from end) |
+| `'flat'` | Array of flat key-value objects |
+| `'nested'` | Array of nested objects (respects `data-container`) |
 | `{ mode: 'form' }` | Array of form data objects |
-| `{ mode: 'flat' }` | Same as `'flat'` with extra options |
-| `{ mode: 'nested' }` | Same as `'nested'` with extra options |
 
-```javascript
-// Get DOM elements
-const elements = dom('.card').get();       // [HTMLElement, HTMLElement, ...]
-const first = dom('.card').get(0);         // HTMLElement
-const last = dom('.card').get(-1);         // HTMLElement
+**`get('nested')` ↔ `fill()` are symmetric** — collected data can be written back:
 
-// Flat: collects all data-key/name/id elements as flat key-value pairs
-const flat = dom('.card').get('flat');
-// [{ title: 'Hello', email: 'test@test.com' }]
-
-// Nested: respects data-container hierarchy
-const nested = dom('.root').get('nested');
-// [{ name: 'John', address: { city: 'NYC', zip: '10001' } }]
-
-// Multiple siblings with same data-container → array:
-// [{ items: [{ val: 'A' }, { val: 'B' }] }]
-
-// Read form data (existing behavior)
-const data = dom('.form').get({ mode: 'form' });
-// [{ email: 'user@test.com', password: '123' }]
-```
-
-**Symmetry:** `dom(el).get('nested')` collects data that `.fill()` can write back:
 ```javascript
 const data = dom('.root').get('nested')[0];
 dom('.root').fill(data);  // idempotent round-trip
 ```
 
-**Form mode options:**
+<details>
+<summary>Form mode options</summary>
 
 | Option | Default | Description |
 |--------|---------|-------------|
@@ -451,312 +328,141 @@ dom('.root').fill(data);  // idempotent round-trip
 | `transformKey` | `null` | `fn(key) => newKey` |
 | `transformValue` | `null` | `fn(value, el) => newValue` |
 
+</details>
+
 ---
 
-### `.enter(index?)`
+### Navigation
 
-Moves context to child elements.
+#### `.enter(index?)`
+
+Moves context to children.
 
 | Argument | Behavior |
 |----------|----------|
-| *(none)* | Enter last added elements; or all children if nothing was added |
-| `number` | Enter child at index (supports negative) |
-| `'selector'` | Enter direct children matching CSS selector |
+| *(none)* | Enter last added, or all children |
+| `number` | Child at index (negative = from end) |
+| `'selector'` | Direct children matching selector only |
 
-`.enter('selector')` only checks **direct children** — unlike `.find()` which searches all descendants.
+> **`enter('selector')` vs `find('selector')`** — `enter` checks only direct children; `find` searches all descendants.
 
-```javascript
-// Enter last added
-dom().add({ class: 'box' }).enter().add({ tag: 'p', text: 'Inside' });
+#### `.up(selector?)`
 
-// Enter by index
-dom('.list').enter(0);    // first child
-dom('.list').enter(-1);   // last child
-
-// Enter by selector (direct children only)
-dom('.container').enter('.item');    // only direct .item children
-dom('.container').enter('span');     // only direct span children
-
-// Enter all children (when nothing was added since last navigation)
-dom('.container').enter();
-```
-
----
-
-### `.up(selector?)`
-
-Moves context to parent elements.
+Moves to parent(s).
 
 | Argument | Behavior |
 |----------|----------|
 | *(none)* | Direct parent |
 | `number` | Go up N levels |
-| `-1` or negative | Go to topmost parent (up to `body`) |
+| `-1` | Topmost parent (up to `body`) |
 | `'selector'` | Closest ancestor matching selector |
 
-```javascript
-dom('.deep-child').up();            // parent
-dom('.deep-child').up(2);           // grandparent
-dom('.deep-child').up(-1);          // body
-dom('.deep-child').up('.container'); // closest .container ancestor
-```
+#### `.back(steps?)`
 
----
-
-### `.back(steps?)`
-
-Restores a previous context from the navigation history.
+Restores previous context from history stack. Each call **consumes** the history entry (true stack pop).
 
 | Argument | Behavior |
 |----------|----------|
-| *(none)* or `1` | Go back one step |
-| `number` | Go back N steps |
-| negative | Go to history index from start |
+| *(none)* or `1` | One step back |
+| `number` | N steps back |
 
-Special: if current context is empty (after `.delete()` or `.cut()`), `.back()` restores parent elements.
+If context is empty (after `.delete()`/`.cut()`), `.back()` restores parent elements.
 
-```javascript
-dom().add({ class: 'a' }).enter().back();        // back to body
-dom().add({ class: 'a' }).enter()
-  .add({ class: 'b' }).enter().back(2);          // back to body
+#### `.find(selector)`
 
-dom('.item').delete().back();                      // restores parent of deleted element
-```
+Selects descendants via `querySelectorAll`. `'*'` = direct children only.
 
 ---
 
-### `.find(selector)`
+### Marks
 
-Selects descendants matching `selector` within the current context.
+#### `.mark(name)` / `.getMark(name)`
 
-| Argument | Behavior |
-|----------|----------|
-| CSS selector | `querySelectorAll` on each current element |
-| `'*'` | All direct children |
-| *(none)* | Clears context (empty selection) |
-
-Use `.back()` to return to previous context.
+Save and restore named contexts. `'root'` mark is auto-created on instantiation.
 
 ```javascript
-dom('.container').find('.item');          // all .items inside .container
-dom('.container').find('*');             // direct children only
-dom('.container').find('input[type=text]'); // text inputs
+dom().add({ class: 'deep' }).enter().enter().getMark('root'); // back at body
 ```
+
+If `lastAdded` is non-empty, `.mark()` saves those; otherwise saves `currentElements`.
 
 ---
 
-### `.mark(name)` / `.getMark(name)`
+### Clipboard
 
-Save and restore named contexts within the same instance.
+#### `.copy()` / `.paste(position?)` / `.cut()`
 
-```javascript
-dom()
-  .add({ class: 'header' }).mark('header')
-  .add({ class: 'main' }).mark('main')
-  .add({ class: 'footer' }).mark('footer')
-  .getMark('main')
-  .add({ tag: 'h1', text: 'Welcome' });
-```
+All operations **preserve form state** (input values, checked state, select options).
 
-A `'root'` mark is created automatically when `dom()` is instantiated.
+| Method | Description |
+|--------|-------------|
+| `.copy()` | Clones current elements to buffer |
+| `.cut()` | Removes from DOM, stores originals in buffer |
+| `.paste(pos?)` | Pastes from buffer. Sets `lastAdded` to pasted elements |
 
-```javascript
-dom().add({ class: 'deep' }).enter().enter().getMark('root');
-// back at body
-```
+**Paste positions:** `'append'`/`'end'` (default), `'prepend'`/`'start'`, `'before'`, `'after'`, `number`.
 
-Note: marks are overwritten if the same name is used again.
+#### `.duplicate(position?)`
 
----
+Clones and inserts next to original. Sets `lastAdded`. Positions: `'append'` (default), `'prepend'`.
 
-### `.copy()` / `.paste(position?)` / `.cut()`
+#### `.delete()`
 
-Clipboard operations within the instance. All clone operations **preserve form state** (input values, checkbox/radio checked state, select options).
-
-**`.copy()`** — clones current elements to buffer (with form state).
-
-**`.paste(position?)`** — pastes cloned elements from buffer. Sets `lastAdded` to the pasted elements.
-
-| Position | Behavior |
-|----------|----------|
-| *(none)* or `'append'` or `'end'` | Append inside at end |
-| `'prepend'` or `'start'` | Insert inside at beginning |
-| `'before'` | Insert before the current element (as sibling) |
-| `'after'` | Insert after the current element (as sibling) |
-| `number` | Insert at index (supports negative) |
-
-**`.cut()`** — removes elements from DOM and copies them to buffer (originals, not clones). Sets context to empty; use `.back()` to get to parent.
-
-```javascript
-// Copy + paste
-dom('.widget').copy().up('.target').paste();
-
-// Paste at position
-dom('.widget').copy().up('.container').paste('prepend');
-dom('.widget').copy().up('.container').paste(1);
-
-// Paste before/after (as sibling)
-dom('.source').copy();
-dom('.target').paste('before');  // inserts before .target
-dom('.target').paste('after');   // inserts after .target
-
-// Chain with pasted elements
-dom('.widget').copy().up().paste().on('click', handler);
-
-// Cut + paste (move element)
-dom('.item').cut().back().find('.other-list').paste();
-```
+Removes current elements from DOM. Use `.back()` to navigate to parents.
 
 ---
 
-### `.duplicate(position?)`
+### Events
 
-Clones each element in the current context and inserts the clone next to the original. **Preserves form state.** Sets `lastAdded` to the cloned elements.
+#### `.on(event, handler, ...args)` / `.off(event, handler?)`
 
-| Position | Behavior |
-|----------|----------|
-| *(none)* or `'append'` | Clone after original |
-| `'prepend'` | Clone before original |
-
-```javascript
-dom('.card').duplicate();            // clone after each .card
-dom('.card').duplicate('prepend');   // clone before each .card
-
-// Chain with duplicated elements
-dom('.item').duplicate().enter().set({ class: '+copy' });
-```
-
----
-
-### `.delete()`
-
-Removes all elements in the current context from the DOM. Use `.back()` to navigate to parents.
-
-```javascript
-dom('.old-item').delete();
-dom('.old-item').delete().back().add({ class: 'new-item', text: 'Replaced' });
-```
-
----
-
-### `.on(event, handler, ...args)` / `.off(event, handler?)`
-
-Event management.
-
-**`.on()`** targets `lastAdded` if available, otherwise `currentElements`. This lets you chain `.add().on()` without `.enter()`:
+Targets `lastAdded` if available, otherwise `currentElements`. This lets you chain `.add().on()`:
 
 ```javascript
 dom(container)
   .add({ tag: 'button', text: 'Delete' })
-  .on('click', onDelete)    // attached to the button
+  .on('click', onDelete)     // attached to the button, not the container
   .add({ tag: 'button', text: 'Add' })
-  .on('click', onAdd);      // attached to the second button
+  .on('click', onAdd);       // attached to this button
 ```
 
-```javascript
-// With extra args
-function handle(label, e) { console.log(label, e.target); }
-dom('.btn').on('click', handle, 'Button:');
-
-// Remove specific handler
-dom('.btn').off('click', handle);
-
-// Remove all click handlers
-dom('.btn').off('click');
-```
+`.off()` without handler removes all handlers for that event.
 
 ---
 
-### `.debug(mode?)`
+### Sync
 
-Debugging tool. Prints internal state or enables step-by-step logging.
+#### `.sync(key, options?)` / `.unsync(key)`
 
-| Argument | Behavior |
-|----------|----------|
-| *(none)* | Prints current state snapshot to console |
-| `'steps'` | Enables logging for every subsequent method call |
-| `false` | Disables step logging |
-
-> **Note:** Step logging is automatically disabled when `process.env.NODE_ENV === 'production'`.
-
-```javascript
-// Print state once
-dom('.card').debug();
-
-// Enable step logging for the whole chain
-dom('.container')
-  .debug('steps')
-  .add({ tag: 'p', text: 'Hello' })
-  .enter()
-  .set({ class: '+active' });
-```
-
----
-
-### `.sync(key, options?)` / `.unsync(key)`
-
-Bidirectional sync between DOM and storage. On init, fills DOM from storage. On `input`/`change` events, writes collected data back to storage with debounce.
+Bidirectional DOM ↔ storage sync. Fills DOM on init, writes on `input`/`change` with debounce.
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `storage` | `'local'` | `'local'`, `'session'`, or `'indexeddb'` |
-| `debounce` | `300` | Debounce delay in ms |
-| `mode` | `'nested'` | `'nested'` or `'flat'` — collection mode |
-| `onSync` | `null` | `fn(data)` — called after each write |
-
-```javascript
-// Persist form to localStorage
-dom('.settings').sync('user-settings');
-
-// Use sessionStorage with callback
-dom('.form').sync('draft', {
-  storage: 'session',
-  debounce: 500,
-  onSync: (data) => console.log('Saved:', data)
-});
-
-// Stop syncing
-dom('.settings').unsync('user-settings');
-```
-
-> **Note:** IndexedDB storage is async — the initial fill happens after the chain returns. localStorage/sessionStorage fill is synchronous.
+| `storage` | `'local'` | `'local'`, `'session'`, `'indexeddb'` |
+| `debounce` | `300` | Debounce delay (ms) |
+| `mode` | `'nested'` | `'nested'` or `'flat'` |
+| `onSync` | `null` | Callback `fn(data)` after each write |
 
 ---
 
-## Chaining Summary
+### Debug
 
-All methods return `this` — you can chain everything:
+#### `.debug(mode?)`
 
-```javascript
-dom()
-  .add({ tag: 'header' })
-  .enter()
-  .add({ tag: 'h1', text: 'Site' })
-  .add({ tag: 'nav' })
-  .enter()
-  .add({ tag: 'a', text: 'Home', attrs: { href: '#' } })
-  .add({ tag: 'a', text: 'About', attrs: { href: '#about' } })
-  .up()
-  .up()
-  .add({ tag: 'main' })
-  .enter()
-  .add({ tag: 'p', text: 'Welcome' })
-  .up()
-  .add({ tag: 'footer', text: '© 2026' });
-```
+| Argument | Behavior |
+|----------|----------|
+| *(none)* | Print state snapshot to console |
+| `'steps'` | Enable logging for every method call |
+| `false` | Disable step logging |
 
-## Testing
+> Step logging is disabled when `process.env.NODE_ENV === 'production'`.
 
-```bash
-npm test                # run all 376 tests
-npm run test:watch      # watch mode
-npm run test:coverage   # coverage report
-```
+---
 
 ## Build
 
 ```bash
-npm run build           # outputs ESM, ESM minified, UMD to dist/
+npm run build
 ```
 
 | Output | Size |
@@ -764,6 +470,15 @@ npm run build           # outputs ESM, ESM minified, UMD to dist/
 | `dist/index.js` | ~50 KB (ESM) |
 | `dist/index.min.js` | ~22 KB / **~6.5 KB gzipped** (ESM) |
 | `dist/index.umd.js` | ~23 KB (UMD) |
+| `dist/index.d.ts` | TypeScript declarations |
+
+## Testing
+
+```bash
+npm test                # 376 tests across 26 suites
+npm run test:watch      # watch mode
+npm run test:coverage   # coverage report
+```
 
 ## License
 

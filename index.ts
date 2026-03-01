@@ -1419,11 +1419,16 @@ class DomUnify {
             continue;
           if (config.exclude?.types?.includes((el as HTMLInputElement).type))
             continue;
+          let excludedByData = false;
           for (const [dataKey, dataVal] of Object.entries(
             config.exclude?.data || {}
           )) {
-            if ((el as HTMLElement).dataset[dataKey] === dataVal) continue;
+            if ((el as HTMLElement).dataset[dataKey] === dataVal) {
+              excludedByData = true;
+              break;
+            }
           }
+          if (excludedByData) continue;
 
           const key = el.getAttribute(config.keyAttr || 'name');
           if (!key) continue;

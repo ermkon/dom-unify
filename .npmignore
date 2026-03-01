@@ -1,8 +1,4 @@
-# Exclude everything
-*
+# .npmignore is not needed — package.json "files" field controls what's published.
+# npm always includes: package.json, README.md, LICENSE, CHANGELOG.md
+# "files": ["dist", "README.md"] adds dist/ contents.
 
-# Keep only the essentials
-!README.md
-!package.json
-!dist/
-!dist/**
