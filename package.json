@@ -1,6 +1,6 @@
 {
   "name": "dom-unify",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A lightweight JavaScript library for intuitive, chainable DOM manipulation. Build, navigate, and manage DOM structures with a clean, readable API. Easily add elements, fill data, sync with storage, and copy/paste subtrees — all in one fluent chain.",
   "keywords": [
     "dom",
