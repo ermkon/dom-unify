@@ -19,7 +19,7 @@ describe('enter', () => {
     unify.enter(0);
     const elements = unify.get();
     expect(elements).toHaveLength(1);
-    expect(elements[0].className).toBe('child1');
+    expect((elements[0] as HTMLElement).className).toBe('child1');
   });
 
   it('should enter the last added elements', () => {
@@ -28,7 +28,7 @@ describe('enter', () => {
     unify.enter();
     const elements = unify.get();
     expect(elements).toHaveLength(1);
-    expect(elements[0].className).toBe('child');
+    expect((elements[0] as HTMLElement).className).toBe('child');
   });
 
   it('should keep current elements if there are no children', () => {
@@ -36,7 +36,7 @@ describe('enter', () => {
     unify.enter();
     const elements = unify.get();
     expect(elements).toHaveLength(1);
-    expect(elements[0].className).toBe('parent');
+    expect((elements[0] as HTMLElement).className).toBe('parent');
   });
 
   it('should handle a negative index', () => {
@@ -49,7 +49,7 @@ describe('enter', () => {
     unify.enter(-1);
     const elements = unify.get();
     expect(elements).toHaveLength(1);
-    expect(elements[0].className).toBe('child2');
+    expect((elements[0] as HTMLElement).className).toBe('child2');
   });
 
   it('should enter all children if no lastAdded and no index', () => {
@@ -62,8 +62,8 @@ describe('enter', () => {
     unify.enter();
     const elements = unify.get();
     expect(elements).toHaveLength(2);
-    expect(elements[0].className).toBe('child1');
-    expect(elements[1].className).toBe('child2');
+    expect((elements[0] as HTMLElement).className).toBe('child1');
+    expect((elements[1] as HTMLElement).className).toBe('child2');
   });
 
   it('should save history on enter', () => {
@@ -71,7 +71,7 @@ describe('enter', () => {
     unify = dom('.parent');
     unify.enter(0);
     unify.back();
-    expect(unify.get()[0].className).toBe('parent');
+    expect((unify.get()[0] as HTMLElement).className).toBe('parent');
   });
 
   it('should handle an out-of-bounds index', () => {
@@ -79,6 +79,6 @@ describe('enter', () => {
     unify = dom('.parent');
     unify.enter(99);
     // No child at index 99, entered stays empty, fallback to currentElements
-    expect(unify.get()[0].className).toBe('parent');
+    expect((unify.get()[0] as HTMLElement).className).toBe('parent');
   });
 });

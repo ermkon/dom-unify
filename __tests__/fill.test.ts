@@ -10,27 +10,27 @@ describe('fill', () => {
     it('should fill text elements by data-key', () => {
       document.body.innerHTML = '<div class="card"><h3 data-key="title"></h3><span data-key="subtitle"></span></div>';
       dom('.card').fill({ title: 'Hello', subtitle: 'World' });
-      expect(document.querySelector('[data-key="title"]').textContent).toBe('Hello');
-      expect(document.querySelector('[data-key="subtitle"]').textContent).toBe('World');
+      expect((document.querySelector('[data-key="title"]') as HTMLElement).textContent).toBe('Hello');
+      expect((document.querySelector('[data-key="subtitle"]') as HTMLElement).textContent).toBe('World');
     });
 
     it('should fill input elements by data-key', () => {
       document.body.innerHTML = '<div class="form"><input data-key="email"><textarea data-key="bio"></textarea></div>';
       dom('.form').fill({ email: 'test@test.com', bio: 'Hello world' });
-      expect(document.querySelector('[data-key="email"]').value).toBe('test@test.com');
-      expect(document.querySelector('[data-key="bio"]').value).toBe('Hello world');
+      expect((document.querySelector('[data-key="email"]') as HTMLInputElement).value).toBe('test@test.com');
+      expect((document.querySelector('[data-key="bio"]') as HTMLInputElement).value).toBe('Hello world');
     });
 
     it('should fill elements by name as fallback', () => {
       document.body.innerHTML = '<div><input name="username"></div>';
       dom('div').fill({ username: 'Alice' });
-      expect(document.querySelector('input').value).toBe('Alice');
+      expect((document.querySelector('input') as HTMLInputElement).value).toBe('Alice');
     });
 
     it('should fill elements by id as fallback', () => {
       document.body.innerHTML = '<div><span id="status"></span></div>';
       dom('div').fill({ status: 'Active' });
-      expect(document.querySelector('#status').textContent).toBe('Active');
+      expect((document.querySelector('#status') as HTMLElement).textContent).toBe('Active');
     });
 
     it('should prioritize data-key over name', () => {
@@ -52,9 +52,9 @@ describe('fill', () => {
       </div>`;
       dom('div').fill({ size: 'M' });
       const radios = document.querySelectorAll('input[type="radio"]');
-      expect(radios[0].checked).toBe(false);
-      expect(radios[1].checked).toBe(true);
-      expect(radios[2].checked).toBe(false);
+      expect((radios[0] as HTMLInputElement).checked).toBe(false);
+      expect((radios[1] as HTMLInputElement).checked).toBe(true);
+      expect((radios[2] as HTMLInputElement).checked).toBe(false);
     });
 
     it('should handle checkboxes with array value', () => {
@@ -65,15 +65,15 @@ describe('fill', () => {
       </div>`;
       dom('div').fill({ colors: ['red', 'green'] });
       const cbs = document.querySelectorAll('input[type="checkbox"]');
-      expect(cbs[0].checked).toBe(true);
-      expect(cbs[1].checked).toBe(false);
-      expect(cbs[2].checked).toBe(true);
+      expect((cbs[0] as HTMLInputElement).checked).toBe(true);
+      expect((cbs[1] as HTMLInputElement).checked).toBe(false);
+      expect((cbs[2] as HTMLInputElement).checked).toBe(true);
     });
 
     it('should handle checkbox with boolean', () => {
       document.body.innerHTML = '<div><input type="checkbox" name="agree" value="yes"></div>';
       dom('div').fill({ agree: true });
-      expect(document.querySelector('input').checked).toBe(true);
+      expect((document.querySelector('input') as HTMLInputElement).checked).toBe(true);
     });
 
     it('should handle multiple select', () => {
@@ -100,9 +100,9 @@ describe('fill', () => {
         </div>
       </div>`;
       dom('.root').fill({ name: 'John', address: { city: 'NYC', zip: '10001' } });
-      expect(document.querySelector('[data-key="name"]').textContent).toBe('John');
-      expect(document.querySelector('[data-key="city"]').value).toBe('NYC');
-      expect(document.querySelector('[data-key="zip"]').value).toBe('10001');
+      expect((document.querySelector('[data-key="name"]') as HTMLElement).textContent).toBe('John');
+      expect((document.querySelector('[data-key="city"]') as HTMLInputElement).value).toBe('NYC');
+      expect((document.querySelector('[data-key="zip"]') as HTMLInputElement).value).toBe('10001');
     });
 
     it('should handle deep nesting', () => {
@@ -115,8 +115,8 @@ describe('fill', () => {
         </div>
       </div>`;
       dom('.root').fill({ level1: { a: 'A', level2: { b: 'B' } } });
-      expect(document.querySelector('[data-key="a"]').textContent).toBe('A');
-      expect(document.querySelector('[data-key="b"]').textContent).toBe('B');
+      expect((document.querySelector('[data-key="a"]') as HTMLElement).textContent).toBe('A');
+      expect((document.querySelector('[data-key="b"]') as HTMLElement).textContent).toBe('B');
     });
 
     it('should not fill elements inside nested containers from parent', () => {
@@ -142,7 +142,7 @@ describe('fill', () => {
         </div>
       </div>`;
       dom('.root').fill({ title: 'Found through wrapper' });
-      expect(document.querySelector('[data-key="title"]').textContent).toBe('Found through wrapper');
+      expect((document.querySelector('[data-key="title"]') as HTMLElement).textContent).toBe('Found through wrapper');
     });
   });
 
@@ -201,7 +201,7 @@ describe('fill', () => {
     it('should skip undefined values in data', () => {
       document.body.innerHTML = '<div><span data-key="a">Original</span></div>';
       dom('div').fill({ a: undefined });
-      expect(document.querySelector('[data-key="a"]').textContent).toBe('Original');
+      expect((document.querySelector('[data-key="a"]') as HTMLElement).textContent).toBe('Original');
     });
   });
 });

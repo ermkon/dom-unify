@@ -16,8 +16,8 @@ describe('Integration Tests — multi-method chains', () => {
 
       const container = document.body.querySelector('.container');
       expect(container).not.toBeNull();
-      expect(container.querySelector('h1').textContent).toBe('Title');
-      expect(container.querySelector('p').textContent).toBe('Content');
+      expect((container.querySelector('h1') as HTMLElement).textContent).toBe('Title');
+      expect((container.querySelector('p') as HTMLElement).textContent).toBe('Content');
     });
 
     it('should support deep nesting', () => {
@@ -30,7 +30,7 @@ describe('Integration Tests — multi-method chains', () => {
         .enter()
         .add({ tag: 'span', text: 'Deep' });
 
-      expect(document.body.querySelector('.l1 .l2 .l3 span').textContent).toBe('Deep');
+      expect((document.body.querySelector('.l1 .l2 .l3 span') as HTMLElement).textContent).toBe('Deep');
     });
 
     it('should navigate up after nesting', () => {
@@ -42,7 +42,7 @@ describe('Integration Tests — multi-method chains', () => {
         .add({ tag: 'p', text: 'Sibling' });
 
       // p should be added to body (parent of .parent)
-      expect(document.body.querySelector('p').textContent).toBe('Sibling');
+      expect((document.body.querySelector('p') as HTMLElement).textContent).toBe('Sibling');
     });
   });
 
@@ -59,7 +59,7 @@ describe('Integration Tests — multi-method chains', () => {
 
       const els = chain.get();
       expect(els).toHaveLength(1);
-      expect(els[0].className).toBe('section-a');
+      expect((els[0] as HTMLElement).className).toBe('section-a');
     });
 
     it('should mark after enter to save the child element', () => {
@@ -88,7 +88,7 @@ describe('Integration Tests — multi-method chains', () => {
 
       const target = document.body.querySelector('.target');
       expect(target.querySelector('.source')).not.toBeNull();
-      expect(target.querySelector('.source').textContent).toBe('Original');
+      expect((target.querySelector('.source') as HTMLElement).textContent).toBe('Original');
     });
 
     it('should correctly paste at an index', () => {
@@ -124,7 +124,7 @@ describe('Integration Tests — multi-method chains', () => {
       chain.paste();
 
       expect(document.body.querySelector('.target .a')).not.toBeNull();
-      expect(document.body.querySelector('.target .a').textContent).toBe('A');
+      expect((document.body.querySelector('.target .a') as HTMLElement).textContent).toBe('A');
     });
   });
 
@@ -142,9 +142,9 @@ describe('Integration Tests — multi-method chains', () => {
 
       const data = formChain.get({ mode: 'form' });
       expect(data).toHaveLength(1);
-      expect(data[0].username).toBe('Alice');
-      expect(data[0].email).toBe('alice@test.com');
-      expect(data[0].bio).toBe('Hello world');
+      expect((data[0] as any).username).toBe('Alice');
+      expect((data[0] as any).email).toBe('alice@test.com');
+      expect((data[0] as any).bio).toBe('Hello world');
     });
 
     it('should correctly handle clearMissing', () => {
@@ -159,8 +159,8 @@ describe('Integration Tests — multi-method chains', () => {
       chain.set({}, { a: 'updated' }, { clearMissing: true });
 
       const data = chain.get({ mode: 'form' });
-      expect(data[0].a).toBe('updated');
-      expect(data[0].b).toBe('');
+      expect((data[0] as any).a).toBe('updated');
+      expect((data[0] as any).b).toBe('');
     });
   });
 
@@ -176,7 +176,7 @@ describe('Integration Tests — multi-method chains', () => {
       chain.back(); // should go to parent via lastParents
 
       expect(document.body.querySelector('.child')).toBeNull();
-      expect(chain.get()[0].className).toBe('parent');
+      expect((chain.get()[0] as HTMLElement).className).toBe('parent');
     });
   });
 
@@ -191,8 +191,8 @@ describe('Integration Tests — multi-method chains', () => {
 
       const items = document.body.querySelectorAll('.item');
       expect(items).toHaveLength(2);
-      expect(items[1].getAttribute('data-id')).toBe('1');
-      expect(items[1].querySelector('span').textContent).toBe('Content');
+      expect((items[1] as HTMLElement).getAttribute('data-id')).toBe('1');
+      expect((items[1] as HTMLElement).querySelector('span').textContent).toBe('Content');
     });
   });
 
@@ -211,8 +211,8 @@ describe('Integration Tests — multi-method chains', () => {
         .add({ tag: 'span', text: 'Badge' })
         .back(2); // back(2) goes 2 steps: enter → find
 
-      expect(chain.get()[0].className).toBe('container');
-      expect(document.body.querySelector('li span').textContent).toBe('Badge');
+      expect((chain.get()[0] as HTMLElement).className).toBe('container');
+      expect((document.body.querySelector('li span') as HTMLElement).textContent).toBe('Badge');
     });
   });
 
@@ -265,8 +265,8 @@ describe('Integration Tests — multi-method chains', () => {
       dom('.form').set({}, { colors: ['red', 'green'], size: 'M' });
 
       const data = dom('.form').get({ mode: 'form' });
-      expect(data[0].colors).toEqual(['red', 'green']);
-      expect(data[0].size).toBe('M');
+      expect((data[0] as any).colors).toEqual(['red', 'green']);
+      expect((data[0] as any).size).toBe('M');
     });
   });
 
@@ -279,7 +279,7 @@ describe('Integration Tests — multi-method chains', () => {
         .add({ tag: 'button', class: 'btn', text: 'Click' });
 
       dom('.btn').on('click', () => { result = 'clicked'; });
-      document.querySelector('.btn').click();
+      (document.querySelector('.btn') as HTMLElement).click();
       expect(result).toBe('clicked');
     });
   });
@@ -299,7 +299,7 @@ describe('Integration Tests — multi-method chains', () => {
       document.body.innerHTML = '<div class="x"></div>';
       const chain = dom('.x');
       expect(chain.get()).toHaveLength(1);
-      expect(chain.get()[0].className).toBe('x');
+      expect((chain.get()[0] as HTMLElement).className).toBe('x');
     });
 
     it('should handle HTMLElement', () => {
@@ -365,9 +365,9 @@ describe('Integration Tests — multi-method chains', () => {
 
       expect(document.body.querySelector('header nav')).not.toBeNull();
       expect(document.body.querySelectorAll('nav a')).toHaveLength(2);
-      expect(document.body.querySelector('main article h1').textContent).toBe('Title');
-      expect(document.body.querySelector('main article p').textContent).toBe('Content');
-      expect(document.body.querySelector('footer').textContent).toBe('© 2026');
+      expect((document.body.querySelector('main article h1') as HTMLElement).textContent).toBe('Title');
+      expect((document.body.querySelector('main article p') as HTMLElement).textContent).toBe('Content');
+      expect((document.body.querySelector('footer') as HTMLElement).textContent).toBe('© 2026');
     });
   });
 
@@ -380,8 +380,8 @@ describe('Integration Tests — multi-method chains', () => {
         { new: 'new-val', old: 'updated' }
       );
 
-      expect(document.querySelector('input[name="new"]').value).toBe('new-val');
-      expect(document.querySelector('input[name="old"]').value).toBe('updated');
+      expect((document.querySelector('input[name="new"]') as HTMLInputElement).value).toBe('new-val');
+      expect((document.querySelector('input[name="old"]') as HTMLInputElement).value).toBe('updated');
     });
   });
 
@@ -402,16 +402,16 @@ describe('Integration Tests — multi-method chains', () => {
       chain.find('.d');
 
       // History: [[.a], [.b], [.c]], current: [.d]
-      expect(chain.get()[0].className).toBe('d');
+      expect((chain.get()[0] as HTMLElement).className).toBe('d');
 
       chain.back(1); // → .c, history becomes [[.a], [.b]]
-      expect(chain.get()[0].className).toBe('c');
+      expect((chain.get()[0] as HTMLElement).className).toBe('c');
 
       chain.back(1); // → .b, history becomes [[.a]]
-      expect(chain.get()[0].className).toBe('b');
+      expect((chain.get()[0] as HTMLElement).className).toBe('b');
 
       chain.back(1); // → .a, history becomes []
-      expect(chain.get()[0].className).toBe('a');
+      expect((chain.get()[0] as HTMLElement).className).toBe('a');
     });
   });
 
@@ -438,12 +438,12 @@ describe('Integration Tests — multi-method chains', () => {
 
       const card = document.querySelector('.card');
       expect(card).not.toBeNull();
-      expect(card.querySelector('.card-header .title').textContent).toBe('Card Title');
-      expect(card.querySelector('.card-header .close-btn').textContent).toBe('×');
-      expect(card.querySelector('.card-body p').textContent).toBe('Card content here');
-      expect(card.querySelector('.card-body img').getAttribute('alt')).toBe('Photo');
-      expect(card.querySelector('.card-footer .btn-primary').textContent).toBe('Save');
-      expect(card.querySelector('.card-footer .btn-secondary').textContent).toBe('Cancel');
+      expect((card.querySelector('.card-header .title') as HTMLElement).textContent).toBe('Card Title');
+      expect((card.querySelector('.card-header .close-btn') as HTMLElement).textContent).toBe('×');
+      expect((card.querySelector('.card-body p') as HTMLElement).textContent).toBe('Card content here');
+      expect((card.querySelector('.card-body img') as HTMLElement).getAttribute('alt')).toBe('Photo');
+      expect((card.querySelector('.card-footer .btn-primary') as HTMLElement).textContent).toBe('Save');
+      expect((card.querySelector('.card-footer .btn-secondary') as HTMLElement).textContent).toBe('Cancel');
     });
 
     it('should build a navigation menu with nested dropdowns', () => {
@@ -476,8 +476,8 @@ describe('Integration Tests — multi-method chains', () => {
       const dropdown = nav.querySelector('.dropdown-menu');
       expect(dropdown).not.toBeNull();
       expect(dropdown.querySelectorAll('li')).toHaveLength(2);
-      expect(dropdown.querySelector('a[href="/software"]').textContent).toBe('Software');
-      expect(dropdown.querySelector('a[href="/hardware"]').textContent).toBe('Hardware');
+      expect((dropdown.querySelector('a[href="/software"]') as HTMLElement).textContent).toBe('Software');
+      expect((dropdown.querySelector('a[href="/hardware"]') as HTMLElement).textContent).toBe('Hardware');
     });
 
     it('should build a table with header, body rows, and data', () => {
@@ -515,8 +515,8 @@ describe('Integration Tests — multi-method chains', () => {
       const table = document.querySelector('.data-table');
       expect(table.querySelectorAll('thead th')).toHaveLength(3);
       expect(table.querySelectorAll('tbody tr')).toHaveLength(2);
-      expect(table.querySelector('tbody tr:first-child td:first-child').textContent).toBe('Alice');
-      expect(table.querySelector('tbody tr:last-child td:last-child').textContent).toBe('bob@test.com');
+      expect((table.querySelector('tbody tr:first-child td:first-child') as HTMLElement).textContent).toBe('Alice');
+      expect((table.querySelector('tbody tr:last-child td:last-child') as HTMLElement).textContent).toBe('bob@test.com');
     });
 
     it('should build a complex form with fieldsets and validation attributes', () => {
@@ -544,12 +544,12 @@ describe('Integration Tests — multi-method chains', () => {
       const form = document.querySelector('.signup-form');
       expect(form.getAttribute('action')).toBe('/signup');
       expect(form.querySelectorAll('fieldset')).toHaveLength(2);
-      expect(form.querySelector('.personal-info legend').textContent).toBe('Personal Information');
+      expect((form.querySelector('.personal-info legend') as HTMLElement).textContent).toBe('Personal Information');
       expect(form.querySelector('input[name="firstName"]')).not.toBeNull();
-      expect(form.querySelector('input[name="email"]').getAttribute('type')).toBe('email');
-      expect(form.querySelector('select[name="theme"]').options).toHaveLength(2);
-      expect(form.querySelector('input[name="newsletter"]').getAttribute('type')).toBe('checkbox');
-      expect(form.querySelector('button[type="submit"]').textContent).toBe('Sign Up');
+      expect((form.querySelector('input[name="email"]') as HTMLElement).getAttribute('type')).toBe('email');
+      expect((form.querySelector('select[name="theme"]') as HTMLSelectElement).options).toHaveLength(2);
+      expect((form.querySelector('input[name="newsletter"]') as HTMLElement).getAttribute('type')).toBe('checkbox');
+      expect((form.querySelector('button[type="submit"]') as HTMLElement).textContent).toBe('Sign Up');
     });
   });
 
@@ -573,17 +573,17 @@ describe('Integration Tests — multi-method chains', () => {
 
       // Read data
       let data = chain.get({ mode: 'form' });
-      expect(data[0].username).toBe('john');
-      expect(data[0].email).toBe('john@test.com');
-      expect(data[0].bio).toBe('Hello');
-      expect(data[0].role).toBe('admin');
+      expect((data[0] as any).username).toBe('john');
+      expect((data[0] as any).email).toBe('john@test.com');
+      expect((data[0] as any).bio).toBe('Hello');
+      expect((data[0] as any).role).toBe('admin');
 
       // Modify and read again
       chain.set({}, { username: 'jane', email: 'jane@test.com' });
       data = chain.get({ mode: 'form' });
-      expect(data[0].username).toBe('jane');
-      expect(data[0].email).toBe('jane@test.com');
-      expect(data[0].bio).toBe('Hello'); // unchanged
+      expect((data[0] as any).username).toBe('jane');
+      expect((data[0] as any).email).toBe('jane@test.com');
+      expect((data[0] as any).bio).toBe('Hello'); // unchanged
     });
 
     it('should cut elements from one container and paste into another', () => {
@@ -597,7 +597,7 @@ describe('Integration Tests — multi-method chains', () => {
       chain.cut();
 
       // Source should be empty now
-      expect(document.querySelector('.source').children.length).toBe(0);
+      expect((document.querySelector('.source') as HTMLElement).children.length).toBe(0);
 
       // Navigate to target via root mark and paste
       chain.back(); // restores from lastParents → .source
@@ -605,7 +605,7 @@ describe('Integration Tests — multi-method chains', () => {
       chain.find('.target');
       chain.paste();
 
-      expect(document.querySelector('.target').children.length).toBe(2);
+      expect((document.querySelector('.target') as HTMLElement).children.length).toBe(2);
       expect(document.querySelector('.target').querySelector('.item').textContent).toBe('ItemA');
     });
 
@@ -638,8 +638,8 @@ describe('Integration Tests — multi-method chains', () => {
         .add({ tag: 'li', text: 'About' });
 
       expect(document.querySelector('.sidebar .menu')).not.toBeNull();
-      expect(document.querySelector('.sidebar .menu').children.length).toBe(2);
-      expect(document.querySelector('.main h1').textContent).toBe('Main Content');
+      expect((document.querySelector('.sidebar .menu') as HTMLElement).children.length).toBe(2);
+      expect((document.querySelector('.main h1') as HTMLElement).textContent).toBe('Main Content');
     });
 
     it('should handle events across navigation', () => {
@@ -653,9 +653,9 @@ describe('Integration Tests — multi-method chains', () => {
         .enter()
         .on('click', handler);
 
-      document.querySelector('.btn').click();
+      (document.querySelector('.btn') as HTMLElement).click();
       expect(clickCount).toBe(1);
-      document.querySelector('.btn').click();
+      (document.querySelector('.btn') as HTMLElement).click();
       expect(clickCount).toBe(2);
     });
 
@@ -673,7 +673,7 @@ describe('Integration Tests — multi-method chains', () => {
 
       const active = document.querySelector('.active');
       expect(active.getAttribute('data-selected')).toBe('true');
-      expect(active.style.color).toBe('red');
+      expect((active as HTMLElement).style.color).toBe('red');
     });
 
     it('should correctly handle delete → back → verify parent state', () => {
@@ -685,8 +685,8 @@ describe('Integration Tests — multi-method chains', () => {
 
       // After delete, context is empty, lastParents has .parent
       chain.back();
-      expect(chain.get()[0].className).toBe('parent');
-      expect(chain.get()[0].children.length).toBe(1); // only .b remains
+      expect((chain.get()[0] as HTMLElement).className).toBe('parent');
+      expect((chain.get()[0] as HTMLElement).children.length).toBe(1); // only .b remains
       expect(chain.get()[0].querySelector('.b').textContent).toBe('B');
     });
   });
@@ -704,7 +704,7 @@ describe('Integration Tests — multi-method chains', () => {
         current = current.querySelector(`.level-${i}`);
         expect(current).not.toBeNull();
       }
-      expect(current.querySelector('span').textContent).toBe('Deep leaf');
+      expect((current.querySelector('span') as HTMLElement).textContent).toBe('Deep leaf');
     });
 
     it('should handle add with children config (nested config object)', () => {
@@ -739,10 +739,10 @@ describe('Integration Tests — multi-method chains', () => {
       });
 
       const root = document.querySelector('.root');
-      expect(root.querySelector('header h1').textContent).toBe('Title');
+      expect((root.querySelector('header h1') as HTMLElement).textContent).toBe('Title');
       expect(root.querySelectorAll('nav a')).toHaveLength(2);
-      expect(root.querySelector('main article h2').textContent).toBe('Article Title');
-      expect(root.querySelector('footer').textContent).toBe('© 2024');
+      expect((root.querySelector('main article h2') as HTMLElement).textContent).toBe('Article Title');
+      expect((root.querySelector('footer') as HTMLElement).textContent).toBe('© 2024');
     });
 
     it('should handle empty find → back recovery', () => {
@@ -751,7 +751,7 @@ describe('Integration Tests — multi-method chains', () => {
       chain.find('.nonexistent');
       expect(chain.get()).toHaveLength(0);
       chain.back();
-      expect(chain.get()[0].className).toBe('box');
+      expect((chain.get()[0] as HTMLElement).className).toBe('box');
     });
 
     it('should handle multiple paste operations from same buffer', () => {
@@ -796,17 +796,17 @@ describe('Integration Tests — multi-method chains', () => {
           ]
         }, { field1: 'val1', field2: 'val2' });
 
-      expect(document.querySelector('input[name="field1"]').value).toBe('val1');
-      expect(document.querySelector('input[name="field2"]').value).toBe('val2');
+      expect((document.querySelector('input[name="field1"]') as HTMLInputElement).value).toBe('val1');
+      expect((document.querySelector('input[name="field2"]') as HTMLInputElement).value).toBe('val2');
     });
 
     it('should handle get(-1) returning last element', () => {
       document.body.innerHTML = '<div class="a">A</div><div class="b">B</div><div class="c">C</div>';
       const chain = dom(document.body);
       chain.find('div');
-      expect(chain.get(-1).className).toBe('c');
-      expect(chain.get(0).className).toBe('a');
-      expect(chain.get(1).className).toBe('b');
+      expect((chain.get(-1) as HTMLElement).className).toBe('c');
+      expect((chain.get(0) as HTMLElement).className).toBe('a');
+      expect((chain.get(1) as HTMLElement).className).toBe('b');
     });
   });
 });

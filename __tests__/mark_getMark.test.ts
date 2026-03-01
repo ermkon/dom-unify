@@ -17,7 +17,7 @@ describe('mark and getMark', () => {
     unify.getMark('test-mark');
     const elements = unify.get();
     expect(elements).toHaveLength(1);
-    expect(elements[0].className).toBe('test');
+    expect((elements[0] as HTMLElement).className).toBe('test');
   });
 
   it('should ignore an invalid mark', () => {
@@ -25,7 +25,7 @@ describe('mark and getMark', () => {
     unify.getMark('nonexistent');
     const elements = unify.get();
     expect(elements).toHaveLength(1);
-    expect(elements[0].tagName).toBe('BODY');
+    expect((elements[0] as HTMLElement).tagName).toBe('BODY');
   });
 
   it('should overwrite an existing mark', () => {
@@ -34,7 +34,7 @@ describe('mark and getMark', () => {
     unify.add({ tag: 'div', class: 'test2' });
     unify.mark('mark');
     unify.getMark('mark');
-    expect(unify.get()[0].className).toBe('test2');
+    expect((unify.get()[0] as HTMLElement).className).toBe('test2');
   });
 
   it('should ignore mark with an empty name', () => {
@@ -46,18 +46,18 @@ describe('mark and getMark', () => {
     const result = unify.getMark('');
     expect(result).toBe(unify);
     // context unchanged
-    expect(unify.get()[0].tagName).toBe('BODY');
+    expect((unify.get()[0] as HTMLElement).tagName).toBe('BODY');
   });
 
   it('should mark lastAdded if present', () => {
     unify.add({ tag: 'span', class: 'added' });
     unify.mark('m');
     unify.getMark('m');
-    expect(unify.get()[0].className).toBe('added');
+    expect((unify.get()[0] as HTMLElement).className).toBe('added');
   });
 
   it('should have a root mark by default', () => {
     unify.getMark('root');
-    expect(unify.get()[0].tagName).toBe('BODY');
+    expect((unify.get()[0] as HTMLElement).tagName).toBe('BODY');
   });
 });

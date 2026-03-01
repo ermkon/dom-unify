@@ -35,7 +35,7 @@ describe('sync() / unsync()', () => {
   it('writes to localStorage on input event', (done) => {
     dom(container).sync('form-data', { debounce: 10 });
     const input = container.querySelector('[data-key="theme"]') as HTMLInputElement;
-    input.value = 'blue';
+    (input as HTMLInputElement).value = 'blue';
     input.dispatchEvent(new Event('input', { bubbles: true }));
 
     setTimeout(() => {
@@ -48,7 +48,7 @@ describe('sync() / unsync()', () => {
   it('writes to sessionStorage when storage is session', (done) => {
     dom(container).sync('sess-data', { storage: 'session', debounce: 10 });
     const input = container.querySelector('[data-key="lang"]') as HTMLInputElement;
-    input.value = 'ru';
+    (input as HTMLInputElement).value = 'ru';
     input.dispatchEvent(new Event('change', { bubbles: true }));
 
     setTimeout(() => {
@@ -62,11 +62,11 @@ describe('sync() / unsync()', () => {
     dom(container).sync('debounce-test', { debounce: 50 });
     const input = container.querySelector('[data-key="theme"]') as HTMLInputElement;
 
-    input.value = 'a';
+    (input as HTMLInputElement).value = 'a';
     input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.value = 'ab';
+    (input as HTMLInputElement).value = 'ab';
     input.dispatchEvent(new Event('input', { bubbles: true }));
-    input.value = 'abc';
+    (input as HTMLInputElement).value = 'abc';
     input.dispatchEvent(new Event('input', { bubbles: true }));
 
     setTimeout(() => {
@@ -80,7 +80,7 @@ describe('sync() / unsync()', () => {
     const onSync = jest.fn();
     dom(container).sync('cb-test', { debounce: 10, onSync });
     const input = container.querySelector('[data-key="theme"]') as HTMLInputElement;
-    input.value = 'green';
+    (input as HTMLInputElement).value = 'green';
     input.dispatchEvent(new Event('input', { bubbles: true }));
 
     setTimeout(() => {
@@ -95,7 +95,7 @@ describe('sync() / unsync()', () => {
     d.unsync('unsync-test');
 
     const input = container.querySelector('[data-key="theme"]') as HTMLInputElement;
-    input.value = 'red';
+    (input as HTMLInputElement).value = 'red';
     input.dispatchEvent(new Event('input', { bubbles: true }));
 
     setTimeout(() => {
@@ -123,7 +123,7 @@ describe('sync() / unsync()', () => {
   it('supports flat mode', (done) => {
     dom(container).sync('flat-test', { mode: 'flat', debounce: 10 });
     const input = container.querySelector('[data-key="theme"]') as HTMLInputElement;
-    input.value = 'mono';
+    (input as HTMLInputElement).value = 'mono';
     input.dispatchEvent(new Event('input', { bubbles: true }));
 
     setTimeout(() => {

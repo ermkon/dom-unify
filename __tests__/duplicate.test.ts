@@ -15,8 +15,8 @@ describe('duplicate', () => {
     unify.duplicate();
     const divs = document.body.querySelectorAll('div.test');
     expect(divs).toHaveLength(2);
-    expect(divs[0].textContent).toBe('Original');
-    expect(divs[1].textContent).toBe('Original');
+    expect((divs[0] as HTMLElement).textContent).toBe('Original');
+    expect((divs[1] as HTMLElement).textContent).toBe('Original');
   });
 
   it('should duplicate to the beginning with position=prepend', () => {
@@ -25,9 +25,9 @@ describe('duplicate', () => {
     unify.duplicate('prepend');
     const divs = document.body.querySelectorAll('div.test');
     expect(divs).toHaveLength(2);
-    expect(divs[0].textContent).toBe('Original');
-    expect(divs[1].textContent).toBe('Original');
-    expect(document.body.firstChild.className).toBe('test');
+    expect((divs[0] as HTMLElement).textContent).toBe('Original');
+    expect((divs[1] as HTMLElement).textContent).toBe('Original');
+    expect((document.body.firstChild as HTMLElement).className).toBe('test');
   });
 
   it('should not duplicate if there is no parent (DocumentFragment)', () => {
@@ -55,7 +55,7 @@ describe('duplicate', () => {
     unify.duplicate();
     const divs = document.body.querySelectorAll('.src');
     expect(divs).toHaveLength(2);
-    expect(divs[1].querySelector('span').textContent).toBe('Inner');
+    expect((divs[1] as HTMLElement).querySelector('span').textContent).toBe('Inner');
   });
 
   it('should return this for chaining', () => {

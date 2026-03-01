@@ -35,7 +35,7 @@ describe('enter(selector)', () => {
     container.innerHTML = '<div id="target">found</div><div>other</div>';
     const d = dom(container).enter('#target');
     expect(d.currentElements.length).toBe(1);
-    expect(d.currentElements[0].id).toBe('target');
+    expect((d.currentElements[0] as HTMLElement).id).toBe('target');
   });
 
   test('enter(selector) falls back to currentElements when no match', () => {

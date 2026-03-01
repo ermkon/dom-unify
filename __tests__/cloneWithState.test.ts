@@ -4,10 +4,10 @@ describe('_cloneWithState()', () => {
   test('clones input text value', () => {
     const input = document.createElement('input');
     input.type = 'text';
-    input.value = 'hello';
+    (input as HTMLInputElement).value = 'hello';
     const clone = DomUnify._cloneWithState(input);
-    expect(clone.value).toBe('hello');
-    expect(clone.tagName).toBe('INPUT');
+    expect((clone as any).value).toBe('hello');
+    expect((clone as any).tagName).toBe('INPUT');
   });
 
   test('clones checkbox checked state', () => {
@@ -15,7 +15,7 @@ describe('_cloneWithState()', () => {
     cb.type = 'checkbox';
     cb.checked = true;
     const clone = DomUnify._cloneWithState(cb);
-    expect(clone.checked).toBe(true);
+    expect((clone as HTMLInputElement).checked).toBe(true);
   });
 
   test('clones radio checked state', () => {
@@ -23,14 +23,14 @@ describe('_cloneWithState()', () => {
     radio.type = 'radio';
     radio.checked = true;
     const clone = DomUnify._cloneWithState(radio);
-    expect(clone.checked).toBe(true);
+    expect((clone as HTMLInputElement).checked).toBe(true);
   });
 
   test('clones textarea value', () => {
     const textarea = document.createElement('textarea');
-    textarea.value = 'some text content';
+    (textarea as unknown as HTMLInputElement).value = 'some text content';
     const clone = DomUnify._cloneWithState(textarea);
-    expect(clone.value).toBe('some text content');
+    expect((clone as any).value).toBe('some text content');
   });
 
   test('clones select selectedIndex', () => {
@@ -43,7 +43,7 @@ describe('_cloneWithState()', () => {
     }
     select.selectedIndex = 2;
     const clone = DomUnify._cloneWithState(select);
-    expect(clone.options[2].selected).toBe(true);
+    expect((clone as HTMLSelectElement).options[2].selected).toBe(true);
   });
 
   test('clones multiple select state', () => {
@@ -57,16 +57,16 @@ describe('_cloneWithState()', () => {
     select.options[0].selected = true;
     select.options[2].selected = true;
     const clone = DomUnify._cloneWithState(select);
-    expect(clone.options[0].selected).toBe(true);
-    expect(clone.options[1].selected).toBe(false);
-    expect(clone.options[2].selected).toBe(true);
+    expect((clone as HTMLSelectElement).options[0].selected).toBe(true);
+    expect((clone as HTMLSelectElement).options[1].selected).toBe(false);
+    expect((clone as HTMLSelectElement).options[2].selected).toBe(true);
   });
 
   test('clones nested form elements inside a container', () => {
     const div = document.createElement('div');
     const input = document.createElement('input');
     input.type = 'text';
-    input.value = 'nested value';
+    (input as HTMLInputElement).value = 'nested value';
     const cb = document.createElement('input');
     cb.type = 'checkbox';
     cb.checked = true;
@@ -74,18 +74,18 @@ describe('_cloneWithState()', () => {
     div.appendChild(cb);
 
     const clone = DomUnify._cloneWithState(div);
-    expect(clone.querySelector('input[type="text"]').value).toBe('nested value');
-    expect(clone.querySelector('input[type="checkbox"]').checked).toBe(true);
+    expect(((clone as HTMLElement).querySelector('input[type="text"]') as HTMLInputElement).value).toBe('nested value');
+    expect(((clone as HTMLElement).querySelector('input[type="checkbox"]') as HTMLInputElement).checked).toBe(true);
   });
 
   test('cloneNode(true) alone does NOT preserve input value — _cloneWithState does', () => {
     const input = document.createElement('input');
-    input.value = 'changed';
+    (input as HTMLInputElement).value = 'changed';
     // cloneNode doesn't copy the programmatic value
     const naiveClone = input.cloneNode(true);
     // _cloneWithState does
     const smartClone = DomUnify._cloneWithState(input);
-    expect(smartClone.value).toBe('changed');
+    expect((smartClone as HTMLInputElement).value).toBe('changed');
   });
 });
 
@@ -93,9 +93,9 @@ describe('copy() preserves form state', () => {
   test('copy() preserves input values in buffer', () => {
     document.body.innerHTML = '<div id="box"><input type="text" value="init"></div>';
     const d = dom('#box input');
-    d.get(0).value = 'modified';
+    (d.get(0) as HTMLInputElement).value = 'modified';
     d.copy();
-    expect(d.buffer[0].value).toBe('modified');
+    expect((d.buffer[0] as HTMLInputElement).value).toBe('modified');
   });
 
   test('copy() preserves checkbox state in buffer', () => {
@@ -104,7 +104,7 @@ describe('copy() preserves form state', () => {
     cb.checked = true;
     const d = dom('input');
     d.copy();
-    expect(d.buffer[0].checked).toBe(true);
+    expect((d.buffer[0] as HTMLInputElement).checked).toBe(true);
   });
 });
 
@@ -112,14 +112,14 @@ describe('paste() preserves form state', () => {
   test('paste() clones with form state', () => {
     document.body.innerHTML = '<div id="src"><input type="text"></div><div id="dest"></div>';
     const input = document.querySelector('#src input');
-    input.value = 'pasted value';
+    (input as HTMLInputElement).value = 'pasted value';
     const d = dom('#src input');
     d.copy();
     // Transfer buffer to destination instance
     const d2 = dom('#dest');
     d2.buffer = d.buffer;
     d2.paste();
-    const pasted = document.querySelector('#dest input');
+    const pasted = document.querySelector('#dest input') as HTMLInputElement;
     expect(pasted.value).toBe('pasted value');
   });
 });
@@ -128,11 +128,11 @@ describe('duplicate() preserves form state', () => {
   test('duplicate() clones with form state', () => {
     document.body.innerHTML = '<div id="wrap"><div id="item"><input type="text"></div></div>';
     const input = document.querySelector('#item input');
-    input.value = 'dup value';
+    (input as HTMLInputElement).value = 'dup value';
     dom('#item').duplicate();
     const items = document.querySelectorAll('#wrap > div');
     expect(items.length).toBe(2);
-    expect(items[1].querySelector('input').value).toBe('dup value');
+    expect((items[1] as HTMLElement).querySelector('input').value).toBe('dup value');
   });
 });
 
@@ -155,10 +155,10 @@ describe('paste() position extensions', () => {
     d2.paste('before');
     const children = Array.from(container.children);
     expect(children.length).toBe(3);
-    expect(children[0].id).toBe('a');
-    expect(children[1].tagName).toBe('P'); // pasted clone of #a
-    expect(children[1].textContent).toBe('A');
-    expect(children[2].id).toBe('b');
+    expect((children[0] as HTMLElement).id).toBe('a');
+    expect((children[1] as HTMLElement).tagName).toBe('P'); // pasted clone of #a
+    expect((children[1] as HTMLElement).textContent).toBe('A');
+    expect((children[2] as HTMLElement).id).toBe('b');
   });
 
   test('paste("after") inserts after the current element', () => {
@@ -170,10 +170,10 @@ describe('paste() position extensions', () => {
     d2.paste('after');
     const children = Array.from(container.children);
     expect(children.length).toBe(3);
-    expect(children[0].id).toBe('a');
-    expect(children[1].tagName).toBe('P'); // pasted clone of #b
-    expect(children[1].textContent).toBe('B');
-    expect(children[2].id).toBe('b');
+    expect((children[0] as HTMLElement).id).toBe('a');
+    expect((children[1] as HTMLElement).tagName).toBe('P'); // pasted clone of #b
+    expect((children[1] as HTMLElement).textContent).toBe('B');
+    expect((children[2] as HTMLElement).id).toBe('b');
   });
 
   test('paste("start") is alias for prepend', () => {
@@ -209,7 +209,7 @@ describe('paste() position extensions', () => {
     d2.buffer = d.buffer;
     d2.paste();
     expect(d2.lastAdded.length).toBe(1);
-    expect(d2.lastAdded[0].tagName).toBe('P');
+    expect((d2.lastAdded[0] as HTMLElement).tagName).toBe('P');
   });
 });
 
@@ -219,7 +219,7 @@ describe('duplicate() sets lastAdded', () => {
     const d = dom('p');
     d.duplicate();
     expect(d.lastAdded.length).toBe(1);
-    expect(d.lastAdded[0].tagName).toBe('P');
+    expect((d.lastAdded[0] as HTMLElement).tagName).toBe('P');
     expect(d.lastAdded[0]).not.toBe(d.currentElements[0]);
   });
 });

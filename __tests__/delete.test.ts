@@ -26,7 +26,7 @@ describe('delete', () => {
     unify = dom('.child');
     unify.delete();
     unify.back();
-    expect(unify.get()[0].className).toBe('parent');
+    expect((unify.get()[0] as HTMLElement).className).toBe('parent');
   });
 
   it('should clear lastAdded after delete', () => {
@@ -42,6 +42,6 @@ describe('delete', () => {
     unify = dom('.del');
     unify.delete();
     expect(document.body.querySelectorAll('.del')).toHaveLength(0);
-    expect(document.body.querySelector('.keep').textContent).toBe('C');
+    expect((document.body.querySelector('.keep') as HTMLElement).textContent).toBe('C');
   });
 });

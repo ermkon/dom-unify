@@ -38,7 +38,7 @@ describe('add', () => {
     unify.add(config, data);
     const input = document.body.querySelector('input[name="test"]');
     expect(input).not.toBeNull();
-    expect(input.value).toBe('filled-value');
+    expect((input as HTMLInputElement).value).toBe('filled-value');
   });
 
   it('should handle an HTML string', () => {
@@ -80,17 +80,17 @@ describe('add', () => {
   it('should update lastAdded', () => {
     unify.add({ tag: 'span', class: 'a' });
     expect(unify.lastAdded).toHaveLength(1);
-    expect(unify.lastAdded[0].className).toBe('a');
+    expect((unify.lastAdded[0] as HTMLElement).className).toBe('a');
     unify.add({ tag: 'span', class: 'b' });
     expect(unify.lastAdded).toHaveLength(1);
-    expect(unify.lastAdded[0].className).toBe('b');
+    expect((unify.lastAdded[0] as HTMLElement).className).toBe('b');
   });
 
   it('should add a Node directly', () => {
     const span = document.createElement('span');
     span.textContent = 'Direct';
     unify.add(span);
-    expect(document.body.querySelector('span').textContent).toBe('Direct');
+    expect((document.body.querySelector('span') as HTMLElement).textContent).toBe('Direct');
   });
 
   it('should add to multiple targets', () => {
@@ -98,7 +98,7 @@ describe('add', () => {
     unify = dom('.t');
     unify.add({ tag: 'span', text: 'In' });
     const divs = document.body.querySelectorAll('.t');
-    expect(divs[0].querySelector('span').textContent).toBe('In');
-    expect(divs[1].querySelector('span').textContent).toBe('In');
+    expect((divs[0] as HTMLElement).querySelector('span').textContent).toBe('In');
+    expect((divs[1] as HTMLElement).querySelector('span').textContent).toBe('In');
   });
 });

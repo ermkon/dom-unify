@@ -15,9 +15,9 @@ describe('_normalizeElements', () => {
       const result = unify._normalizeElements('.test-class');
       expect(result).toHaveLength(2);
       expect(result[0]).toBeInstanceOf(HTMLElement);
-      expect(result[0].className).toBe('test-class');
-      expect(result[0].textContent).toBe('Test');
-      expect(result[1].textContent).toBe('Test2');
+      expect((result[0] as HTMLElement).className).toBe('test-class');
+      expect((result[0] as HTMLElement).textContent).toBe('Test');
+      expect((result[1] as HTMLElement).textContent).toBe('Test2');
     });
 
     it('should return [document.body] for null or undefined', () => {
@@ -56,10 +56,10 @@ describe('_normalizeElements', () => {
         document.createComment('comment'),
         document.doctype
       ];
-      const result = unify._normalizeElements(input);
+      const result = unify._normalizeElements(input as any);
       expect(result).toHaveLength(1);
       expect(result[0]).toBeInstanceOf(HTMLElement);
-      expect(result[0].tagName).toBe('DIV');
+      expect((result[0] as HTMLElement).tagName).toBe('DIV');
     });
 
     it('should handle NodeList', () => {
@@ -68,8 +68,8 @@ describe('_normalizeElements', () => {
       const result = unify._normalizeElements(nodeList);
       expect(result).toHaveLength(2);
       expect(result[0]).toBeInstanceOf(HTMLElement);
-      expect(result[0].tagName).toBe('SPAN');
-      expect(result[1].tagName).toBe('SPAN');
+      expect((result[0] as HTMLElement).tagName).toBe('SPAN');
+      expect((result[1] as HTMLElement).tagName).toBe('SPAN');
     });
 
     it('should handle empty array and return empty array', () => {
@@ -89,15 +89,15 @@ describe('_normalizeElements', () => {
     it('should handle array with mixed valid and invalid elements', () => {
       const div = document.createElement('div');
       const textNode = document.createTextNode('text');
-      const result = unify._normalizeElements([div, textNode, 'invalid', null]);
+      const result = unify._normalizeElements([div, textNode, 'invalid', null] as any);
       expect(result).toHaveLength(1);
       expect(result[0]).toBe(div);
     });
 
     it('should handle falsey values like false, 0, empty string and return [document.body]', () => {
-      expect(unify._normalizeElements(false)).toEqual([document.body]);
-      expect(unify._normalizeElements(0)).toEqual([document.body]);
-      expect(unify._normalizeElements('')).toEqual([document.body]);
+      expect(unify._normalizeElements(false as any)).toEqual([document.body]);
+      expect(unify._normalizeElements(0 as any)).toEqual([document.body]);
+      expect(unify._normalizeElements('' as any)).toEqual([document.body]);
     });
   });
 
@@ -109,15 +109,15 @@ describe('_normalizeElements', () => {
     });
 
     it('should return empty array for invalid input types like objects or functions', () => {
-      const result1 = unify._normalizeElements({});
-      const result2 = unify._normalizeElements(() => {});
+      const result1 = unify._normalizeElements({} as any);
+      const result2 = unify._normalizeElements((() => {}) as any);
       expect(result1).toEqual([]);
       expect(result2).toEqual([]);
     });
 
     it('should return empty array for Set with non-HTMLElement items', () => {
-      const set = new Set(['invalid', document.createTextNode('text')]);
-      const result = unify._normalizeElements(set);
+      const set = new Set(['invalid', document.createTextNode('text')] as any[]);
+      const result = unify._normalizeElements(set as any);
       expect(result).toEqual([]);
     });
 
@@ -125,8 +125,8 @@ describe('_normalizeElements', () => {
       document.body.innerHTML = '<div>Text <span>Span</span></div>';
       const nodeList = document.querySelectorAll('*'); // Includes text nodes indirectly, but simulate mixed
       // Simulate a mixed NodeList-like with invalid nodes
-      const mixedInput = Array.from(nodeList).concat([document.createTextNode('extra'), document.createComment('comment')]);
-      const result = unify._normalizeElements(mixedInput);
+      const mixedInput = Array.from(nodeList).concat([document.createTextNode('extra'), document.createComment('comment')] as any[]);
+      const result = unify._normalizeElements(mixedInput as any);
       expect(result.every(el => el instanceof HTMLElement || el instanceof DocumentFragment)).toBe(true);
       expect(result.length).toBeGreaterThan(0); // At least the div and span
     });
@@ -136,7 +136,7 @@ describe('_normalizeElements', () => {
       const result = unify._normalizeElements('.svg-test');
       expect(result).toHaveLength(1);
       // jsdom returns lowercase tagName for SVG elements
-      expect(result[0].tagName.toLowerCase()).toBe('circle');
+      expect((result[0] as HTMLElement).tagName.toLowerCase()).toBe('circle');
     });
 
     it('should return empty array if querySelectorAll throws or fails due to malformed selector', () => {

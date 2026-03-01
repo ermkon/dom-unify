@@ -19,8 +19,8 @@ describe('find', () => {
     unify.find('.child');
     const elements = unify.get();
     expect(elements).toHaveLength(2);
-    expect(elements[0].className).toBe('child');
-    expect(elements[1].className).toBe('child');
+    expect((elements[0] as HTMLElement).className).toBe('child');
+    expect((elements[1] as HTMLElement).className).toBe('child');
   });
 
   it('should return an empty array for an invalid selector', () => {
@@ -69,11 +69,11 @@ describe('find', () => {
     unify.find('.b');
     unify.find('.c');
     // History: [.a], [.b], current: [.c]
-    expect(unify.get()[0].className).toBe('c');
+    expect((unify.get()[0] as HTMLElement).className).toBe('c');
     unify.back(1);
-    expect(unify.get()[0].className).toBe('b');
+    expect((unify.get()[0] as HTMLElement).className).toBe('b');
     unify.back(1);
-    expect(unify.get()[0].className).toBe('a');
+    expect((unify.get()[0] as HTMLElement).className).toBe('a');
   });
 
   it('should find nested elements from multiple parents', () => {
@@ -94,7 +94,7 @@ describe('find', () => {
     unify = dom(document.body);
     unify.find('[name="email"]');
     expect(unify.get()).toHaveLength(1);
-    expect(unify.get()[0].getAttribute('name')).toBe('email');
+    expect((unify.get()[0] as HTMLElement).getAttribute('name')).toBe('email');
   });
 
   it('should return empty for find inside empty elements', () => {

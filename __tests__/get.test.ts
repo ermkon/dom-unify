@@ -13,15 +13,15 @@ describe('get', () => {
     unify.add({ tag: 'div', class: 'test' });
     unify = dom('.test');
     expect(unify.get()).toHaveLength(1);
-    expect(unify.get()[0].className).toBe('test');
+    expect((unify.get()[0] as HTMLElement).className).toBe('test');
   });
 
   it('should return an element by index', () => {
     unify.add({ tag: 'div', class: 'test1' });
     unify.add({ tag: 'div', class: 'test2' });
     unify = dom('div');
-    expect(unify.get(0).className).toBe('test1');
-    expect(unify.get(-1).className).toBe('test2');
+    expect((unify.get(0) as HTMLElement).className).toBe('test1');
+    expect((unify.get(-1) as HTMLElement).className).toBe('test2');
   });
 
   it('should get data from input', () => {
@@ -74,7 +74,7 @@ describe('get', () => {
     const result = unify.get({
       mode: 'form',
       transformKey: k => k.toUpperCase(),
-      transformValue: v => v.toUpperCase(),
+      transformValue: v => (v as string).toUpperCase(),
     });
     expect(result).toEqual([{ TEST: 'VALUE' }]);
   });
@@ -156,9 +156,9 @@ describe('get', () => {
     Object.defineProperty(input, 'files', { value: [file] });
     unify = dom(document.body);
     const result = unify.get({ mode: 'form', fileHandling: 'meta' });
-    expect(result[0].file[0]).toHaveProperty('name', 'test.txt');
-    expect(result[0].file[0]).toHaveProperty('type', 'text/plain');
-    expect(result[0].file[0]).toHaveProperty('size');
+    expect((result[0] as any).file[0]).toHaveProperty('name', 'test.txt');
+    expect((result[0] as any).file[0]).toHaveProperty('type', 'text/plain');
+    expect((result[0] as any).file[0]).toHaveProperty('size');
   });
 
   it('should handle fileHandling: none', () => {

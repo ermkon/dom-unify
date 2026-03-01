@@ -172,7 +172,7 @@ describe('get flat and nested modes', () => {
   describe('get() with unknown string', () => {
     it('should return null for unknown mode', () => {
       document.body.innerHTML = '<div></div>';
-      const result = dom('div').get('unknown');
+      const result = dom('div').get('unknown' as any);
       expect(result).toBeNull();
     });
   });
@@ -200,7 +200,7 @@ describe('get flat and nested modes', () => {
           <input data-key="year" value="2026">
         </div>
       </div>`;
-      const data = dom('.root').get('nested')[0];
+      const data = dom('.root').get('nested')[0] as any;
       expect(data).toEqual({ title: 'Original Title', meta: { author: 'Alice', year: '2026' } });
 
       // Modify, fill back
@@ -208,7 +208,7 @@ describe('get flat and nested modes', () => {
       data.meta.author = 'Bob';
       dom('.root').fill(data);
 
-      const result = dom('.root').get('nested')[0];
+      const result = dom('.root').get('nested')[0] as any;
       expect(result.title).toBe('New Title');
       expect(result.meta.author).toBe('Bob');
       expect(result.meta.year).toBe('2026');

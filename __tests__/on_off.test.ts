@@ -77,7 +77,7 @@ describe('on and off', () => {
     document.body.innerHTML = '<button class="btn">A</button><button class="btn">B</button>';
     unify = dom('.btn');
     unify.on('click', () => count++);
-    document.querySelectorAll('.btn').forEach(b => b.click());
+    document.querySelectorAll('.btn').forEach(b => (b as HTMLElement).click());
     expect(count).toBe(2);
   });
 
@@ -90,26 +90,26 @@ describe('on and off', () => {
 
   it('should attach on by string name of a window function', () => {
     let called = false;
-    globalThis.window.testOnHandler = () => { called = true; };
+    (globalThis as any).testOnHandler = () => { called = true; };
     document.body.innerHTML = '<button class="btn">Click</button>';
     unify = dom('.btn');
     unify.on('click', 'testOnHandler');
-    document.querySelector('.btn').click();
+    (document.querySelector('.btn') as HTMLElement).click();
     expect(called).toBe(true);
-    delete globalThis.window.testOnHandler;
+    delete (globalThis as any).testOnHandler;
   });
 
   it('should detach off by string name of a window function', () => {
     let count = 0;
-    globalThis.window.testOffHandler = () => { count++; };
+    (globalThis as any).testOffHandler = () => { count++; };
     document.body.innerHTML = '<button class="btn">Click</button>';
     unify = dom('.btn');
     unify.on('click', 'testOffHandler');
-    document.querySelector('.btn').click();
+    (document.querySelector('.btn') as HTMLElement).click();
     expect(count).toBe(1);
     unify.off('click', 'testOffHandler');
-    document.querySelector('.btn').click();
+    (document.querySelector('.btn') as HTMLElement).click();
     expect(count).toBe(1);
-    delete globalThis.window.testOffHandler;
+    delete (globalThis as any).testOffHandler;
   });
 });

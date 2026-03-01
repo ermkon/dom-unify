@@ -41,19 +41,19 @@ describe('set class modifiers', () => {
   it('should replace className without modifier prefix (current behavior)', () => {
     document.body.innerHTML = '<div class="old"></div>';
     dom('div').set({ class: 'new' });
-    expect(document.querySelector('div').className).toBe('new');
+    expect((document.querySelector('div') as HTMLElement).className).toBe('new');
   });
 
   it('should replace with multiple classes without modifier', () => {
     document.body.innerHTML = '<div class="old"></div>';
     dom('div').set({ class: 'btn primary' });
-    expect(document.querySelector('div').className).toBe('btn primary');
+    expect((document.querySelector('div') as HTMLElement).className).toBe('btn primary');
   });
 
   it('should clear className with empty string', () => {
     document.body.innerHTML = '<div class="something"></div>';
     dom('div').set({ class: '' });
-    expect(document.querySelector('div').className).toBe('');
+    expect((document.querySelector('div') as HTMLElement).className).toBe('');
   });
 
   it('should work on multiple elements', () => {

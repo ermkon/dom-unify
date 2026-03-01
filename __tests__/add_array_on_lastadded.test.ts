@@ -17,9 +17,9 @@ describe('add with array data', () => {
 
     const items = document.querySelectorAll('.item');
     expect(items).toHaveLength(3);
-    expect(items[0].querySelector('[data-key="name"]').textContent).toBe('A');
-    expect(items[1].querySelector('[data-key="name"]').textContent).toBe('B');
-    expect(items[2].querySelector('[data-key="name"]').textContent).toBe('C');
+    expect((items[0] as HTMLElement).querySelector('[data-key="name"]').textContent).toBe('A');
+    expect((items[1] as HTMLElement).querySelector('[data-key="name"]').textContent).toBe('B');
+    expect((items[2] as HTMLElement).querySelector('[data-key="name"]').textContent).toBe('C');
   });
 
   it('should create 0 copies for empty array', () => {
@@ -39,8 +39,8 @@ describe('add with array data', () => {
 
     const inputs = document.querySelectorAll('[data-key="val"]');
     expect(inputs).toHaveLength(2);
-    expect(inputs[0].value).toBe('10');
-    expect(inputs[1].value).toBe('20');
+    expect((inputs[0] as HTMLInputElement).value).toBe('10');
+    expect((inputs[1] as HTMLInputElement).value).toBe('20');
   });
 
   it('should update lastAdded with all created elements', () => {
@@ -48,8 +48,8 @@ describe('add with array data', () => {
       .add({ tag: 'span', class: 'tag' }, [{ x: '1' }, { x: '2' }]);
 
     expect(chain.lastAdded).toHaveLength(2);
-    expect(chain.lastAdded[0].className).toBe('tag');
-    expect(chain.lastAdded[1].className).toBe('tag');
+    expect((chain.lastAdded[0] as HTMLElement).className).toBe('tag');
+    expect((chain.lastAdded[1] as HTMLElement).className).toBe('tag');
   });
 
   it('should work with nested config and array data', () => {
@@ -69,10 +69,10 @@ describe('add with array data', () => {
 
     const cards = document.querySelectorAll('.card');
     expect(cards).toHaveLength(2);
-    expect(cards[0].querySelector('[data-key="title"]').textContent).toBe('Card 1');
-    expect(cards[0].querySelector('[data-key="desc"]').textContent).toBe('Description 1');
-    expect(cards[1].querySelector('[data-key="title"]').textContent).toBe('Card 2');
-    expect(cards[1].querySelector('[data-key="desc"]').textContent).toBe('Description 2');
+    expect((cards[0] as HTMLElement).querySelector('[data-key="title"]').textContent).toBe('Card 1');
+    expect((cards[0] as HTMLElement).querySelector('[data-key="desc"]').textContent).toBe('Description 1');
+    expect((cards[1] as HTMLElement).querySelector('[data-key="title"]').textContent).toBe('Card 2');
+    expect((cards[1] as HTMLElement).querySelector('[data-key="desc"]').textContent).toBe('Description 2');
   });
 
   it('should add to multiple targets', () => {
@@ -81,8 +81,8 @@ describe('add with array data', () => {
       { tag: 'span', 'data-key': 'label' },
       [{ label: 'X' }, { label: 'Y' }]
     );
-    const firstDiv = document.querySelectorAll('.t')[0];
-    const secondDiv = document.querySelectorAll('.t')[1];
+    const firstDiv = document.querySelectorAll('.t')[0] as HTMLElement;
+    const secondDiv = document.querySelectorAll('.t')[1] as HTMLElement;
     expect(firstDiv.querySelectorAll('span')).toHaveLength(2);
     expect(secondDiv.querySelectorAll('span')).toHaveLength(2);
   });
@@ -93,8 +93,8 @@ describe('add with array data', () => {
       { tag: 'input', attrs: { name: 'new', type: 'text' } },
       { new: 'new-val', old: 'updated' }
     );
-    expect(document.querySelector('input[name="new"]').value).toBe('new-val');
-    expect(document.querySelector('input[name="old"]').value).toBe('updated');
+    expect((document.querySelector('input[name="new"]') as HTMLInputElement).value).toBe('new-val');
+    expect((document.querySelector('input[name="old"]') as HTMLInputElement).value).toBe('updated');
   });
 });
 
@@ -111,7 +111,7 @@ describe('on/off with lastAdded', () => {
       .add({ tag: 'button', class: 'btn', text: 'Click' })
       .on('click', () => { clicked = true; });
 
-    document.querySelector('.btn').click();
+    (document.querySelector('.btn') as HTMLElement).click();
     expect(clicked).toBe(true);
   });
 
@@ -130,7 +130,7 @@ describe('on/off with lastAdded', () => {
     chain.add({ tag: 'button', class: 'btn' })
       .on('click', (e) => { e.stopPropagation(); btnClicked = true; });
 
-    document.querySelector('.btn').click();
+    (document.querySelector('.btn') as HTMLElement).click();
     expect(btnClicked).toBe(true);
   });
 
@@ -143,7 +143,7 @@ describe('on/off with lastAdded', () => {
       .on('click', () => clickCount++)
       .on('mouseover', () => hoverCount++);
 
-    const btn = document.querySelector('.btn');
+    const btn = document.querySelector('.btn') as HTMLElement;
     btn.click();
     btn.dispatchEvent(new Event('mouseover'));
     expect(clickCount).toBe(1);
@@ -162,11 +162,11 @@ describe('on/off with lastAdded', () => {
       .add({ tag: 'button', class: 'add-btn', text: 'Add' })
       .on('click', () => { addClicked = true; });
 
-    document.querySelector('.delete-btn').click();
+    (document.querySelector('.delete-btn') as HTMLElement).click();
     expect(deleteClicked).toBe(true);
     expect(addClicked).toBe(false);
 
-    document.querySelector('.add-btn').click();
+    (document.querySelector('.add-btn') as HTMLElement).click();
     expect(addClicked).toBe(true);
   });
 
@@ -178,12 +178,12 @@ describe('on/off with lastAdded', () => {
       .add({ tag: 'button', class: 'btn' })
       .on('click', handler);
 
-    document.querySelector('.btn').click();
+    (document.querySelector('.btn') as HTMLElement).click();
     expect(count).toBe(1);
 
     // off should target the button (lastAdded still set from .add())
     chain.off('click', handler);
-    document.querySelector('.btn').click();
+    (document.querySelector('.btn') as HTMLElement).click();
     expect(count).toBe(1);
   });
 
@@ -192,7 +192,7 @@ describe('on/off with lastAdded', () => {
     document.body.innerHTML = '<button class="btn">Click</button>';
     // New chain — lastAdded is empty
     dom('.btn').on('click', () => { clicked = true; });
-    document.querySelector('.btn').click();
+    (document.querySelector('.btn') as HTMLElement).click();
     expect(clicked).toBe(true);
   });
 });

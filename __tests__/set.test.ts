@@ -78,21 +78,21 @@ describe('set', () => {
     document.body.innerHTML = '<div></div>';
     unify = dom('div');
     unify.set({ id: 'my-id' });
-    expect(document.body.querySelector('div').id).toBe('my-id');
+    expect((document.body.querySelector('div') as HTMLElement).id).toBe('my-id');
   });
 
   it('should set html', () => {
     document.body.innerHTML = '<div></div>';
     unify = dom('div');
     unify.set({ html: '<span>Hi</span>' });
-    expect(document.body.querySelector('span').textContent).toBe('Hi');
+    expect((document.body.querySelector('span') as HTMLElement).textContent).toBe('Hi');
   });
 
   it('should set dataset', () => {
     document.body.innerHTML = '<div></div>';
     unify = dom('div');
     unify.set({ dataset: { key: 'val' } });
-    expect(document.body.querySelector('div').dataset.key).toBe('val');
+    expect((document.body.querySelector('div') as HTMLElement).dataset.key).toBe('val');
   });
 
   it('should work with multiple elements', () => {
@@ -100,8 +100,8 @@ describe('set', () => {
     unify = dom('.a');
     unify.set({ text: 'updated' });
     const divs = document.body.querySelectorAll('.a');
-    expect(divs[0].textContent).toBe('updated');
-    expect(divs[1].textContent).toBe('updated');
+    expect((divs[0] as HTMLElement).textContent).toBe('updated');
+    expect((divs[1] as HTMLElement).textContent).toBe('updated');
   });
 
   it('should handle textarea via data', () => {

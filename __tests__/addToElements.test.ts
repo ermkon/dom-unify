@@ -15,7 +15,7 @@ describe('DomUnify.addToElements (static)', () => {
 
     expect(parent.innerHTML).toBe('<span class="test">Hello</span>');
     expect(result).toHaveLength(1);
-    expect(result[0].tagName).toBe('SPAN');
+    expect((result[0] as HTMLElement).tagName).toBe('SPAN');
   });
 
   it('should add multiple elements from an array of configs', () => {
@@ -142,8 +142,8 @@ describe('DomUnify.addToElements (static)', () => {
 
     DomUnify.addToElements([parent], config, data);
 
-    expect(parent.querySelector('input[type="checkbox"]').checked).toBe(true);
-    expect(parent.querySelector('input[type="radio"]').checked).toBe(true);
+    expect((parent.querySelector('input[type="checkbox"]') as HTMLInputElement).checked).toBe(true);
+    expect((parent.querySelector('input[type="radio"]') as HTMLInputElement).checked).toBe(true);
   });
 
   it('should handle multiple select', () => {
@@ -166,7 +166,7 @@ describe('DomUnify.addToElements (static)', () => {
     const select = parent.querySelector('select');
     const selected = Array.from(select.selectedOptions).map(o => o.value);
     expect(selected).toEqual(['apple', 'banana']);
-    expect(select.querySelector('option[value="orange"]').selected).toBe(false);
+    expect((select.querySelector('option[value="orange"]') as HTMLOptionElement).selected).toBe(false);
   });
 
   it('should clear fields with clearMissing: true', () => {
@@ -179,8 +179,8 @@ describe('DomUnify.addToElements (static)', () => {
     const oldInput = parent.querySelector('input[name="old"]');
     const keepInput = parent.querySelector('input[name="keep"]');
 
-    expect(oldInput.value).toBe('');
-    expect(keepInput.value).toBe('updated');
+    expect((oldInput as HTMLInputElement).value).toBe('');
+    expect((keepInput as HTMLInputElement).value).toBe('updated');
     expect(parent.querySelector('span')).not.toBeNull();
   });
 

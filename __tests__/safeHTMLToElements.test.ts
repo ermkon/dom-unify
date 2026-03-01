@@ -17,13 +17,13 @@ describe('safeHTMLToElements', () => {
       const html = '<div class="test">Hello</div><span>World</span><p>Paragraph</p>';
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(3);
-      expect(result[0].tagName).toBe('DIV');
-      expect(result[0].className).toBe('test');
-      expect(result[0].textContent).toBe('Hello');
-      expect(result[1].tagName).toBe('SPAN');
-      expect(result[1].textContent).toBe('World');
-      expect(result[2].tagName).toBe('P');
-      expect(result[2].textContent).toBe('Paragraph');
+      expect((result[0] as HTMLElement).tagName).toBe('DIV');
+      expect((result[0] as HTMLElement).className).toBe('test');
+      expect((result[0] as HTMLElement).textContent).toBe('Hello');
+      expect((result[1] as HTMLElement).tagName).toBe('SPAN');
+      expect((result[1] as HTMLElement).textContent).toBe('World');
+      expect((result[2] as HTMLElement).tagName).toBe('P');
+      expect((result[2] as HTMLElement).textContent).toBe('Paragraph');
     });
 
     it('should handle plain text without tags', () => {
@@ -31,7 +31,7 @@ describe('safeHTMLToElements', () => {
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(1);
       expect(result[0].nodeType).toBe(Node.TEXT_NODE);
-      expect(result[0].textContent).toBe('Plain text content');
+      expect((result[0] as HTMLElement).textContent).toBe('Plain text content');
     });
 
     it('should handle comments and preserve them (empty if script inside due to cleaning)', () => {
@@ -39,51 +39,51 @@ describe('safeHTMLToElements', () => {
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(2);
       expect(result[0].nodeType).toBe(Node.COMMENT_NODE);
-      expect(result[0].textContent).toBe('  ');
-      expect(result[1].tagName).toBe('DIV');
-      expect(result[1].textContent).toBe('Test');
+      expect((result[0] as HTMLElement).textContent).toBe('  ');
+      expect((result[1] as HTMLElement).tagName).toBe('DIV');
+      expect((result[1] as HTMLElement).textContent).toBe('Test');
     });
 
     it('should handle self-closing tags like img and br', () => {
       const html = '<img src="safe.jpg" alt="image"><br><hr>';
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(3);
-      expect(result[0].tagName).toBe('IMG');
-      expect(result[0].getAttribute('src')).toBe('safe.jpg');
-      expect(result[0].getAttribute('alt')).toBe('image');
-      expect(result[1].tagName).toBe('BR');
-      expect(result[2].tagName).toBe('HR');
+      expect((result[0] as HTMLElement).tagName).toBe('IMG');
+      expect((result[0] as HTMLElement).getAttribute('src')).toBe('safe.jpg');
+      expect((result[0] as HTMLElement).getAttribute('alt')).toBe('image');
+      expect((result[1] as HTMLElement).tagName).toBe('BR');
+      expect((result[2] as HTMLElement).tagName).toBe('HR');
     });
 
     it('should handle nested elements', () => {
       const html = '<div><span>Nested</span><p>Content</p></div>';
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(1);
-      const div = result[0];
+      const div = result[0] as HTMLElement;
       expect(div.tagName).toBe('DIV');
       expect(div.children).toHaveLength(2);
-      expect(div.children[0].tagName).toBe('SPAN');
-      expect(div.children[0].textContent).toBe('Nested');
-      expect(div.children[1].tagName).toBe('P');
-      expect(div.children[1].textContent).toBe('Content');
+      expect((div.children[0] as HTMLElement).tagName).toBe('SPAN');
+      expect((div.children[0] as HTMLElement).textContent).toBe('Nested');
+      expect((div.children[1] as HTMLElement).tagName).toBe('P');
+      expect((div.children[1] as HTMLElement).textContent).toBe('Content');
     });
 
     it('should handle SVG elements safely (lowercase tagName in jsdom)', () => {
       const html = '<svg><circle cx="10" cy="10" r="5"></circle></svg>';
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(1);
-      const svg = result[0];
+      const svg = result[0] as HTMLElement;
       expect(svg.tagName).toBe('svg');
       expect(svg.children).toHaveLength(1);
-      expect(svg.children[0].tagName).toBe('circle');
-      expect(svg.children[0].getAttribute('cx')).toBe('10');
+      expect((svg.children[0] as HTMLElement).tagName).toBe('circle');
+      expect((svg.children[0] as HTMLElement).getAttribute('cx')).toBe('10');
     });
 
     it('should handle entities and decode them correctly', () => {
       const html = '<div>&lt;script&gt;alert(1)&lt;/script&gt;</div>';
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(1);
-      const div = result[0];
+      const div = result[0] as HTMLElement;
       expect(div.tagName).toBe('DIV');
       expect(div.innerHTML).toBe('&lt;script&gt;alert(1)&lt;/script&gt;');
       expect(div.textContent).toBe('<script>alert(1)</script>');
@@ -95,7 +95,7 @@ describe('safeHTMLToElements', () => {
       const html = '<div><script>alert("xss");</script></div>';
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(1);
-      const div = result[0];
+      const div = result[0] as HTMLElement;
       expect(div.tagName).toBe('DIV');
       expect(div.querySelector('script')).toBeNull();
       expect(div.innerHTML).toBe('');
@@ -105,7 +105,7 @@ describe('safeHTMLToElements', () => {
       const html = '<div><script src="evil.js"></script></div>';
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(1);
-      const div = result[0];
+      const div = result[0] as HTMLElement;
       expect(div.querySelector('script')).toBeNull();
       expect(div.innerHTML).toBe('');
     });
@@ -114,7 +114,7 @@ describe('safeHTMLToElements', () => {
       const html = '<div><SCRIPT type="text/javascript">alert(1)</SCRIPT><script Type="application/javascript">xss</script></div>';
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(1);
-      const div = result[0];
+      const div = result[0] as HTMLElement;
       expect(div.querySelector('script')).toBeNull();
       expect(div.innerHTML).toBe('');
     });
@@ -123,11 +123,11 @@ describe('safeHTMLToElements', () => {
       const html = '<svg><script>alert("svg xss")</script><circle r="5"></circle></svg>';
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(1);
-      const svg = result[0];
+      const svg = result[0] as HTMLElement;
       expect(svg.tagName).toBe('svg');
       expect(svg.querySelector('script')).toBeNull();
       expect(svg.children).toHaveLength(1);
-      expect(svg.children[0].tagName).toBe('circle');
+      expect((svg.children[0] as HTMLElement).tagName).toBe('circle');
     });
 
     it('should remove script tags in comments (empties comment)', () => {
@@ -135,8 +135,8 @@ describe('safeHTMLToElements', () => {
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(2);
       expect(result[0].nodeType).toBe(Node.COMMENT_NODE);
-      expect(result[0].textContent).toBe('  ');
-      expect(result[1].tagName).toBe('DIV');
+      expect((result[0] as HTMLElement).textContent).toBe('  ');
+      expect((result[1] as HTMLElement).tagName).toBe('DIV');
     });
 
     // CDATA removal test removed — simplified sanitizer only handles scripts and on* attrs
@@ -147,7 +147,7 @@ describe('safeHTMLToElements', () => {
       const html = '<div onclick="alert(1)" onmouseover="hover()" onload="load()">Test</div>';
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(1);
-      const div = result[0];
+      const div = result[0] as HTMLElement;
       expect(div.getAttribute('onclick')).toBeNull();
       expect(div.getAttribute('onmouseover')).toBeNull();
       expect(div.getAttribute('onload')).toBeNull();
@@ -158,7 +158,7 @@ describe('safeHTMLToElements', () => {
       const html = '<img src="img.jpg" onclick=\'alert("xss")\' onfocus=\'focus()\' />';
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(1);
-      const img = result[0];
+      const img = result[0] as HTMLElement;
       expect(img.tagName).toBe('IMG');
       expect(img.getAttribute('onclick')).toBeNull();
       expect(img.getAttribute('onfocus')).toBeNull();
@@ -181,12 +181,12 @@ describe('safeHTMLToElements', () => {
       const html = '<div class="test" unclosed><p>Malformed';
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(1);
-      const div = result[0];
+      const div = result[0] as HTMLElement;
       expect(div.tagName).toBe('DIV');
       expect(div.className).toBe('test');
       expect(div.children).toHaveLength(1);
-      expect(div.children[0].tagName).toBe('P');
-      expect(div.children[0].textContent).toBe('Malformed');
+      expect((div.children[0] as HTMLElement).tagName).toBe('P');
+      expect((div.children[0] as HTMLElement).textContent).toBe('Malformed');
     });
 
     it('should handle non-string input by converting to string', () => {
@@ -194,7 +194,7 @@ describe('safeHTMLToElements', () => {
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(1);
       expect(result[0].nodeType).toBe(Node.TEXT_NODE);
-      expect(result[0].textContent).toBe('123');
+      expect((result[0] as HTMLElement).textContent).toBe('123');
     });
 
     it('should handle null/undefined as empty string', () => {
@@ -208,8 +208,8 @@ describe('safeHTMLToElements', () => {
       const html = { toString: () => '<div>Safe</div>' };
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(1);
-      expect(result[0].tagName).toBe('DIV');
-      expect(result[0].textContent).toBe('Safe');
+      expect((result[0] as HTMLElement).tagName).toBe('DIV');
+      expect((result[0] as HTMLElement).textContent).toBe('Safe');
     });
 
     it('should handle Symbol input by coercing to string (user error)', () => {
@@ -217,7 +217,7 @@ describe('safeHTMLToElements', () => {
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(1);
       expect(result[0].nodeType).toBe(Node.TEXT_NODE);
-      expect(result[0].textContent).toBe('Symbol(test)');
+      expect((result[0] as HTMLElement).textContent).toBe('Symbol(test)');
     });
 
     // Long input warning test removed — no artificial length limit
@@ -227,7 +227,7 @@ describe('safeHTMLToElements', () => {
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(1);
       expect(result[0].nodeType).toBe(Node.TEXT_NODE);
-      expect(result[0].textContent).toBe('NaN');
+      expect((result[0] as HTMLElement).textContent).toBe('NaN');
     });
   });
 
@@ -243,7 +243,7 @@ describe('safeHTMLToElements', () => {
       const html = '<button onclick="alert(\'event xss\')">Click</button>';
       const result = DomUnify.safeHTMLToElements(html);
       expect(result).toHaveLength(1);
-      const button = result[0];
+      const button = result[0] as HTMLElement;
       button.click();
       expect(button.getAttribute('onclick')).toBeNull();
       expect(window.alert).not.toHaveBeenCalled();

@@ -32,7 +32,7 @@ describe('cut', () => {
     chain.cut();
     // back() restores lastParents when currentElements is empty
     chain.back();
-    expect(chain.get()[0].className).toBe('parent');
+    expect((chain.get()[0] as HTMLElement).className).toBe('parent');
   });
 
   it('should clear currentElements after cut', () => {

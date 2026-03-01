@@ -15,8 +15,8 @@ describe('copy and paste', () => {
     unify.paste();
     const divs = document.body.querySelectorAll('div.test');
     expect(divs).toHaveLength(2);
-    expect(divs[0].textContent).toBe('Original');
-    expect(divs[1].textContent).toBe('Original');
+    expect((divs[0] as HTMLElement).textContent).toBe('Original');
+    expect((divs[1] as HTMLElement).textContent).toBe('Original');
   });
 
   it('should insert elements at the beginning with position=prepend', () => {
@@ -34,10 +34,10 @@ describe('copy and paste', () => {
     chain.paste('prepend');
     const divs = document.body.querySelectorAll('div');
     expect(divs).toHaveLength(3);
-    expect(divs[0].className).toBe('first');
-    expect(divs[0].textContent).toBe('First');
-    expect(divs[1].className).toBe('first');
-    expect(divs[2].className).toBe('second');
+    expect((divs[0] as HTMLElement).className).toBe('first');
+    expect((divs[0] as HTMLElement).textContent).toBe('First');
+    expect((divs[1] as HTMLElement).className).toBe('first');
+    expect((divs[2] as HTMLElement).className).toBe('second');
   });
 
   it('should paste at a specific index', () => {
@@ -47,9 +47,9 @@ describe('copy and paste', () => {
     unify.find('.first').copy().paste(1);
     const divs = document.body.querySelectorAll('div');
     expect(divs).toHaveLength(3);
-    expect(divs[0].className).toBe('first');
-    expect(divs[1].className).toBe('first');
-    expect(divs[2].className).toBe('second');
+    expect((divs[0] as HTMLElement).className).toBe('first');
+    expect((divs[1] as HTMLElement).className).toBe('first');
+    expect((divs[2] as HTMLElement).className).toBe('second');
   });
 
   it('should do nothing if the buffer is empty', () => {

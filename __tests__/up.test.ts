@@ -18,7 +18,7 @@ describe('up', () => {
     unify.up();
     const elements = unify.get();
     expect(elements).toHaveLength(1);
-    expect(elements[0].className).toBe('parent');
+    expect((elements[0] as HTMLElement).className).toBe('parent');
   });
 
   it('should go up multiple levels', () => {
@@ -32,7 +32,7 @@ describe('up', () => {
     unify.up(2);
     const elements = unify.get();
     expect(elements).toHaveLength(1);
-    expect(elements[0].className).toBe('grandparent');
+    expect((elements[0] as HTMLElement).className).toBe('grandparent');
   });
 
   it('should find a parent by selector', () => {
@@ -44,7 +44,7 @@ describe('up', () => {
     unify.up('.parent');
     const elements = unify.get();
     expect(elements).toHaveLength(1);
-    expect(elements[0].className).toBe('parent');
+    expect((elements[0] as HTMLElement).className).toBe('parent');
   });
 
   it('should go to body with selector=-1', () => {
@@ -56,7 +56,7 @@ describe('up', () => {
     unify.up(-1);
     const elements = unify.get();
     expect(elements).toHaveLength(1);
-    expect(elements[0].tagName).toBe('BODY');
+    expect((elements[0] as HTMLElement).tagName).toBe('BODY');
   });
 
   it('should save history on up', () => {
@@ -64,7 +64,7 @@ describe('up', () => {
     unify = dom('.child');
     unify.up();
     unify.back();
-    expect(unify.get()[0].className).toBe('child');
+    expect((unify.get()[0] as HTMLElement).className).toBe('child');
   });
 
   it('should clear lastAdded on up', () => {
@@ -82,6 +82,6 @@ describe('up', () => {
     unify.up();
     // Both spans have same parent — should deduplicate
     expect(unify.get()).toHaveLength(1);
-    expect(unify.get()[0].className).toBe('p');
+    expect((unify.get()[0] as HTMLElement).className).toBe('p');
   });
 });

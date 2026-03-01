@@ -19,7 +19,7 @@ describe('back', () => {
     unify.back();
     const elements = unify.get();
     expect(elements).toHaveLength(1);
-    expect(elements[0].className).toBe('parent');
+    expect((elements[0] as HTMLElement).className).toBe('parent');
   });
 
   it('should go back multiple steps', () => {
@@ -35,7 +35,7 @@ describe('back', () => {
     unify.back(2);
     const elements = unify.get();
     expect(elements).toHaveLength(1);
-    expect(elements[0].className).toBe('grandparent');
+    expect((elements[0] as HTMLElement).className).toBe('grandparent');
   });
 
   it('should restore lastParents when context is empty', () => {
@@ -48,7 +48,7 @@ describe('back', () => {
     unify.back();
     const elements = unify.get();
     expect(elements).toHaveLength(1);
-    expect(elements[0].className).toBe('parent');
+    expect((elements[0] as HTMLElement).className).toBe('parent');
   });
 
   it('should ignore if history is empty', () => {
@@ -68,7 +68,7 @@ describe('back', () => {
     unify.find('.level3');
     // negative steps: back(-1) goes to index 0 (first history entry)
     unify.back(-1);
-    expect(unify.get()[0].className).toBe('level1');
+    expect((unify.get()[0] as HTMLElement).className).toBe('level1');
   });
 
   it('should clear lastAdded on back', () => {
@@ -87,13 +87,13 @@ describe('back', () => {
     unify.find('.d');
     // History: [[.a], [.b], [.c]], current: [.d]
     unify.back(1); // → .c, history shrinks to [[.a], [.b]]
-    expect(unify.get()[0].className).toBe('c');
+    expect((unify.get()[0] as HTMLElement).className).toBe('c');
     unify.back(1); // → .b, history shrinks to [[.a]]
-    expect(unify.get()[0].className).toBe('b');
+    expect((unify.get()[0] as HTMLElement).className).toBe('b');
     unify.back(1); // → .a, history shrinks to []
-    expect(unify.get()[0].className).toBe('a');
+    expect((unify.get()[0] as HTMLElement).className).toBe('a');
     unify.back(1); // empty history, no-op
-    expect(unify.get()[0].className).toBe('a');
+    expect((unify.get()[0] as HTMLElement).className).toBe('a');
   });
 
   it('should handle back(3) jumping multiple steps at once', () => {
@@ -104,27 +104,27 @@ describe('back', () => {
     unify.find('.d');
     // History: [[.a], [.b], [.c]], current: [.d]
     unify.back(3); // → .a, history becomes []
-    expect(unify.get()[0].className).toBe('a');
+    expect((unify.get()[0] as HTMLElement).className).toBe('a');
     // History is now empty
     unify.back(1);
-    expect(unify.get()[0].className).toBe('a');
+    expect((unify.get()[0] as HTMLElement).className).toBe('a');
   });
 
   it('should back() after enter() correctly', () => {
     document.body.innerHTML = '<div class="parent"><span class="child">Test</span></div>';
     unify = dom('.parent');
     unify.enter(0);
-    expect(unify.get()[0].className).toBe('child');
+    expect((unify.get()[0] as HTMLElement).className).toBe('child');
     unify.back();
-    expect(unify.get()[0].className).toBe('parent');
+    expect((unify.get()[0] as HTMLElement).className).toBe('parent');
   });
 
   it('should back() after up() correctly', () => {
     document.body.innerHTML = '<div class="parent"><span class="child">Test</span></div>';
     unify = dom('.child');
     unify.up();
-    expect(unify.get()[0].className).toBe('parent');
+    expect((unify.get()[0] as HTMLElement).className).toBe('parent');
     unify.back();
-    expect(unify.get()[0].className).toBe('child');
+    expect((unify.get()[0] as HTMLElement).className).toBe('child');
   });
 });
