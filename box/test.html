@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- <title>DomUnify Test Suite</title> -->
+</head>
+<body>
+<!--   <div id="root"></div>
+  <div id="buttons"></div> -->
+
+  <script type="module">
+    import { dom } from './index.js'
+
+    // dom()
+    // .add({ tag: 'div', text: 'A' })
+    // .enter()
+    // .mark('a')
+    // .copy()
+    // .set({text: 'B'})
+    // .up()
+    // .paste()
+    // .getMark('a')
+    // .paste()
+
+// const dom1 = dom()
+//   .add({ tag: 'div', class: 'form-container', 'data-form': 'user-form' })
+//   .mark('form-container')
+//   .enter()
+//   .add({ 
+//     tag: 'input', 
+//     type: 'text', 
+//     name: 'name', 
+//     autocomplete: 'off', 
+//     'data-input': 'name', 
+//     value: 'Alice' 
+//   })
+//   .mark('input-name')
+//   .add({ 
+//     tag: 'input', 
+//     type: 'email', 
+//     name: 'email', 
+//     autocomplete: 'off',
+//     'data-input': 'email', 
+//     placeholder: 'alice@example.com',
+//     value: 'alice@example.com' 
+//   })
+//   .mark('input-email')
+//   .add({ 
+//     tag: 'select', 
+//     name: 'age', 
+//     autocomplete: 'off',
+//     'data-input': 'age', 
+//     children: [
+//       { tag: 'option', value: '25', text: '25' },
+//       { tag: 'option', value: '30', text: '30', selected: true },
+//       { tag: 'option', value: '35', text: '35' }
+//     ]
+//   })
+//   .mark('select-age')
+//   .add({ 
+//     tag: 'textarea', 
+//     name: 'bio', 
+//     autocomplete: 'off',
+//     'data-input': 'bio', 
+//     value: 'Bio text with multiple lines.\nSecond line.' 
+//   })
+//   .mark('textarea-bio')
+//   .add({ tag: 'div', class: 'footer', text: 'Form footer' })
+//   .mark('footer-div');
+
+// // Снимки и вывод (как раньше)
+// const formContainer = dom(dom1.getMark('form-container').get());
+// const inputName = dom(dom1.getMark('input-name').get());
+// const inputEmail = dom(dom1.getMark('input-email').get());
+// const selectAge = dom(dom1.getMark('select-age').get());
+// const textareaBio = dom(dom1.getMark('textarea-bio').get());
+// const footerDiv = dom(dom1.getMark('footer-div').get());
+
+// console.group('=== Тест маркеров ===');
+// console.log('Полный контейнер:', formContainer.get(0).outerHTML);
+// console.log('Input name:', inputName.get(0).outerHTML);
+// console.log('Input email:', inputEmail.get(0).outerHTML);
+// console.log('Select age:', selectAge.get(0).outerHTML);
+// console.log('Textarea bio:', textareaBio.get(0).outerHTML);
+// console.log('Footer div:', footerDiv.get(0).outerHTML);
+// console.groupEnd();
+
+
+
+
+
+const domOne = dom(null)
+  .add({ tag: 'input', type: 'text', name: 'username', placeholder: 'Имя пользователя' })
+  .add({ tag: 'input', type: 'email', name: 'email', placeholder: 'Ваш email' })
+  .add({ tag: 'textarea', name: 'bio', placeholder: 'О себе' })
+  .add({ tag: 'select', name: 'country', children: [
+    { tag: 'option', value: 'usa', text: 'США' },
+    { tag: 'option', value: 'canada', text: 'Канада' },
+    { tag: 'option', value: 'uk', text: 'Великобритания' }
+  ]})
+  .add({ tag: 'input', type: 'checkbox', name: 'interests', value: 'coding' })
+  .add({ tag: 'input', type: 'checkbox', name: 'interests', value: 'reading' })
+  .add({ tag: 'input', type: 'radio', name: 'role', value: 'user' })
+  .add({ tag: 'input', type: 'radio', name: 'role', value: 'admin' });
+
+dom('body')
+  .add({ tag: 'div', id: 'form-container' })
+  .enter()
+  .add(domOne)
+  .add({ tag: 'button', id: 'download-btn', text: 'Скачать JSON' })
+  .add({ tag: 'input', type: 'file', id: 'upload-json', accept: '.json' })
+  .add({ tag: 'button', id: 'load-btn', text: 'Загрузить JSON' });
+
+dom('#download-btn').on('click', () => {
+  dom('#form-container').downloadFile(
+    dom('#form-container').get({ mode: 'form', excludeEmpty: true })[0],
+    { filename: 'data.json', mimeType: 'application/json', format: data => JSON.stringify(data, null, 2) }
+  );
+});
+
+dom('#form-container').loadFile(
+  '#upload-json',
+  data => {
+    dom('#load-btn').on('click', () => {
+      dom('#form-container').set({}, data, { clearMissing: true });
+    });
+  },
+  { parse: JSON.parse }
+);
+
+
+</script>
+
+</body>
+</html>
