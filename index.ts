@@ -845,7 +845,11 @@ class DomUnify {
     for (const el of this.currentElements) {
       if (!(el instanceof Element)) continue;
       if (props.text !== undefined) el.textContent = props.text;
-      if (props.html !== undefined) (el as HTMLElement).innerHTML = props.html;
+      if (props.html !== undefined) {
+        const safeNodes = DomUnify.safeHTMLToElements(props.html);
+        (el as HTMLElement).innerHTML = '';
+        safeNodes.forEach((node) => el.appendChild(node));
+      }
       if (props.class !== undefined) {
         const classVal = String(props.class).trim();
         if (

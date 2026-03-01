@@ -356,12 +356,10 @@ dom().add({ tag: 'button', text: 'Click', styles: { color: 'white', background: 
 
 Updates properties of all elements in the current context.
 
-> **Note:** `.set({ html })` writes raw `innerHTML` **without** sanitization, unlike `.add({ html })` which sanitizes by default. Ensure the content is trusted.
-
 | Property | Type | Description |
 |----------|------|-------------|
 | `text` | string | Sets `textContent` |
-| `html` | string | Sets `innerHTML` (not sanitized) |
+| `html` | string | Sets `innerHTML` (sanitized: `<script>`, `on*` removed) |
 | `class` | string | Sets `className` (or class modifier, see below) |
 | `id` | string | Sets `id` |
 | `style` | object | Merges CSS styles |
