@@ -1,6 +1,15 @@
 # dom-unify
 
-Chainable DOM manipulation library. Build, navigate, and manage DOM structures from pure JavaScript — no HTML files needed.
+[![npm version](https://img.shields.io/npm/v/dom-unify.svg)](https://www.npmjs.com/package/dom-unify)
+[![npm downloads](https://img.shields.io/npm/dm/dom-unify.svg)](https://www.npmjs.com/package/dom-unify)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/dom-unify)](https://bundlephobia.com/package/dom-unify)
+[![license](https://img.shields.io/npm/l/dom-unify.svg)](https://opensource.org/licenses/MIT)
+
+Chainable library that unifies all DOM operations into one fluent API.
+Context navigation with history and marks, nested data-binding for objects and forms,
+unique clipboard (copy/paste subtrees preserving form state), builder and utilities.
+
+**~6.5 kB gzipped** · Zero dependencies · TypeScript declarations included
 
 ## Install
 
@@ -10,7 +19,22 @@ npm install dom-unify
 
 ```javascript
 import { dom } from 'dom-unify';
+// or
+import dom from 'dom-unify';
 ```
+
+### Browser (UMD)
+
+```html
+<script src="https://unpkg.com/dom-unify/dist/index.umd.js"></script>
+<script>
+  const { dom } = DomUnify;
+</script>
+```
+
+## Browser Compatibility
+
+Modern browsers: **Chrome 90+**, **Firefox 88+**, **Safari 14+**, **Edge 90+**. No polyfills required.
 
 ## Quick Start
 
@@ -365,7 +389,7 @@ dom('.item').fill([{ name: 'A' }, { name: 'B' }, { name: 'C' }]);
 
 **Nesting:** if a data value is an object and a `[data-container]` with the matching name exists, `.fill()` recurses into it. Regular `div` wrappers without `data-container` are transparent.
 
-**Array values of objects are skipped** — use `.add(config, array)` to create repeated elements.
+**Array values of objects throw an error** — use `.add(config, array)` to create repeated elements.
 
 ---
 
@@ -606,7 +630,7 @@ dom('.item').duplicate().enter().set({ class: '+copy' });
 
 ### `.delete()`
 
-Removes all elements in the current context from the DOM. Saves their parents in `lastParents`. Use `.back()` to navigate to parents.
+Removes all elements in the current context from the DOM. Use `.back()` to navigate to parents.
 
 ```javascript
 dom('.old-item').delete();
@@ -619,7 +643,7 @@ dom('.old-item').delete().back().add({ class: 'new-item', text: 'Replaced' });
 
 Event management.
 
-**`.on(event, handler, ...args)`** — attaches handler. Targets `lastAdded` if available, otherwise `currentElements`. This lets you chain `.add().on()` without `.enter()`:
+**`.on()`** targets `lastAdded` if available, otherwise `currentElements`. This lets you chain `.add().on()` without `.enter()`:
 
 ```javascript
 dom(container)
@@ -629,37 +653,16 @@ dom(container)
   .on('click', onAdd);      // attached to the second button
 ```
 
-| Argument | Description |
-|----------|-------------|
-| `event` | Event name: `'click'`, `'input'`, etc. |
-| `handler` | Function or string (global function name) |
-| `...args` | Extra arguments prepended before the event object |
-
-**`.off(event, handler?)`** — removes handlers. Same targeting as `.on()`.
-
-| Argument | Description |
-|----------|-------------|
-| `event` | Event name |
-| `handler` | Specific handler to remove. If omitted — removes all handlers for that event. |
-
 ```javascript
-// Basic
-dom('.btn').on('click', (e) => console.log('Clicked'));
-
 // With extra args
 function handle(label, e) { console.log(label, e.target); }
 dom('.btn').on('click', handle, 'Button:');
 
-// Remove specific
+// Remove specific handler
 dom('.btn').off('click', handle);
 
 // Remove all click handlers
 dom('.btn').off('click');
-
-// By name
-window.onSave = (e) => { /* ... */ };
-dom('.save-btn').on('click', 'onSave');
-dom('.save-btn').off('click', 'onSave');
 ```
 
 ---
@@ -674,12 +677,11 @@ Debugging tool. Prints internal state or enables step-by-step logging.
 | `'steps'` | Enables logging for every subsequent method call |
 | `false` | Disables step logging |
 
-State snapshot includes: current elements (tag#id.class), lastAdded, history depth, marks, buffer.
+> **Note:** Step logging is automatically disabled when `process.env.NODE_ENV === 'production'`.
 
 ```javascript
 // Print state once
 dom('.card').debug();
-// [dom-unify] state: { currentElements: ['div.card'], ... }
 
 // Enable step logging for the whole chain
 dom('.container')
@@ -687,115 +689,9 @@ dom('.container')
   .add({ tag: 'p', text: 'Hello' })
   .enter()
   .set({ class: '+active' });
-// [dom-unify] .add() { current: ['div.container'], lastAdded: ['p'], ... }
-// [dom-unify] .enter() { current: ['p'], ... }
-// [dom-unify] .set() { current: ['p.active'], ... }
-
-// Turn off
-dom('.card').debug('steps').add({ tag: 'span' }).debug(false);
-```
-
-Warns when context is empty:
-```javascript
-dom('.nonexistent').debug();
-// [dom-unify] ⚠ EMPTY CONTEXT
 ```
 
 ---
-
-### `.downloadFile(content, options?)`
-
-Triggers a browser file download.
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `filename` | `'file.txt'` | Download filename |
-| `mimeType` | `'text/plain'` | MIME type |
-| `format` | `null` | `fn(content) => formattedContent` |
-
-```javascript
-// Download text
-dom().downloadFile('Hello world', { filename: 'hello.txt' });
-
-// Download JSON
-const data = dom('.form').get({ mode: 'form' });
-dom().downloadFile(JSON.stringify(data, null, 2), {
-  filename: 'data.json',
-  mimeType: 'application/json'
-});
-```
-
----
-
-### `.loadFile(selector, callback, options?)`
-
-Sets up a file input handler to read a file.
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `readAs` | `'text'` | `'text'`, `'dataURL'`, `'arrayBuffer'`, `'binaryString'` |
-| `parse` | `null` | `fn(result) => parsedResult` |
-| `onError` | `console.error` | Error handler function |
-
-```javascript
-// Read text file
-dom().loadFile('#file-input', (content) => {
-  console.log(content);
-});
-
-// Read and parse JSON
-dom().loadFile('#json-input', (data) => {
-  dom('.form').set({}, data);
-}, { parse: JSON.parse });
-```
-
-### `.save(options?)`
-
-Collects data from current elements and downloads as a file.
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `filename` | `'data.json'` | Downloaded file name |
-| `mode` | `'nested'` | `'nested'`, `'flat'`, or `'form'` — collection mode |
-| `format` | `'json'` | `'json'`, `'csv'`, or `'text'` — output format |
-| `space` | `2` | JSON indentation spaces |
-| `transform` | `null` | `fn(data) => modifiedData` — transform before formatting |
-
-```javascript
-// Save nested data as JSON
-dom('.form').save();
-
-// Save flat data as CSV
-dom('.form').save({ mode: 'flat', format: 'csv', filename: 'export.csv' });
-
-// Transform before saving
-dom('.form').save({ transform: data => ({ ...data, exported: Date.now() }) });
-```
-
-### `.load(selector, options?)`
-
-Reads a file from a file input and fills current elements with parsed data.
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `parse` | `'json'` | `'json'` or `fn(raw) => data` — parse strategy |
-| `fill` | `true` | Auto-fill current elements with parsed data |
-| `onLoad` | `null` | `fn(data)` — called after successful load |
-| `onError` | `console.error` | Error handler function |
-
-```javascript
-// Load JSON and auto-fill form
-dom('.form').load('#file-input', {
-  onLoad: (data) => console.log('Loaded:', data)
-});
-
-// Load with custom parser, no auto-fill
-dom('.form').load('#file-input', {
-  parse: raw => raw.split('\n').map(line => ({ text: line })),
-  fill: false,
-  onLoad: (rows) => console.log(rows)
-});
-```
 
 ### `.sync(key, options?)` / `.unsync(key)`
 
@@ -848,6 +744,26 @@ dom()
   .up()
   .add({ tag: 'footer', text: '© 2026' });
 ```
+
+## Testing
+
+```bash
+npm test                # run all 376 tests
+npm run test:watch      # watch mode
+npm run test:coverage   # coverage report
+```
+
+## Build
+
+```bash
+npm run build           # outputs ESM, ESM minified, UMD to dist/
+```
+
+| Output | Size |
+|--------|------|
+| `dist/index.js` | ~50 KB (ESM) |
+| `dist/index.min.js` | ~22 KB / **~6.5 KB gzipped** (ESM) |
+| `dist/index.umd.js` | ~23 KB (UMD) |
 
 ## License
 
