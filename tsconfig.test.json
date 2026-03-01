@@ -3,8 +3,7 @@
   "compilerOptions": {
     "noEmit": true,
     "strict": false,
-    "rootDir": ".",
-    "outDir": "./dist-test",
+    "strictNullChecks": false,
     "types": ["jest"]
   },
   "include": ["index.ts", "__tests__/**/*.ts"]

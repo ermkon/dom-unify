@@ -191,10 +191,11 @@ describe('fill', () => {
       expect(chain.fill(undefined)).toBe(chain);
     });
 
-    it('should skip array-of-objects values', () => {
+    it('should throw an explicit error for array-of-objects values', () => {
       document.body.innerHTML = '<div class="root"><span data-key="title"></span></div>';
-      dom('.root').fill({ title: 'Hi', items: [{ a: 1 }, { b: 2 }] });
-      expect(document.querySelector('[data-key="title"]').textContent).toBe('Hi');
+      expect(() => {
+        dom('.root').fill({ title: 'Hi', items: [{ a: 1 }, { b: 2 }] });
+      }).toThrow('key "items" contains an array of objects');
     });
 
     it('should skip undefined values in data', () => {

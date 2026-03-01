@@ -60,33 +60,6 @@ export interface SetProps {
   dataset?: Record<string, string>;
 }
 
-export interface DownloadOptions {
-  filename?: string;
-  mimeType?: string;
-  format?: ((content: unknown) => unknown) | null;
-}
-
-export interface LoadFileOptions {
-  readAs?: 'text' | 'dataURL' | 'arrayBuffer' | 'binaryString';
-  parse?: ((result: unknown) => unknown) | null;
-  onError?: (err: Error) => void;
-}
-
-export interface SaveOptions {
-  filename?: string;
-  mode?: 'nested' | 'flat' | string;
-  format?: 'json' | 'csv' | 'text';
-  space?: number;
-  transform?: ((data: unknown) => unknown) | null;
-}
-
-export interface LoadOptions {
-  parse?: 'json' | ((raw: string) => unknown);
-  fill?: boolean;
-  onLoad?: ((data: unknown) => void) | null;
-  onError?: (err: Error) => void;
-}
-
 export interface SyncOptions {
   storage?: 'local' | 'session' | 'indexeddb';
   debounce?: number;
@@ -211,6 +184,7 @@ class DomUnify {
   }
 
   _logStep(method: string): void {
+    if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'production') return;
     if (!this._debugMode) return;
     console.log(`[dom-unify] .${method}()`, {
       current: this._describeElements(this.currentElements),
@@ -221,6 +195,7 @@ class DomUnify {
   }
 
   debug(mode?: 'steps' | false): this {
+    if (typeof process !== 'undefined' && process.env?.NODE_ENV === 'production') return this;
     if (mode === false) {
       this._debugMode = false;
       return this;
@@ -600,7 +575,10 @@ class DomUnify {
         value.length > 0 &&
         typeof value[0] === 'object'
       ) {
-        continue;
+        throw new Error(
+          `[dom-unify] fill(): key "${key}" contains an array of objects. ` +
+          `Use .add(config, arrayData) to create repeated elements instead.`
+        );
       }
 
       const targets = new Set<Element>();
@@ -1545,214 +1523,6 @@ class DomUnify {
     }
   }
 
-  downloadFile(content: unknown, options: DownloadOptions = {}): this {
-    const {
-      filename = 'file.txt',
-      mimeType = 'text/plain',
-      format = null,
-    } = options;
-    let formattedContent: unknown;
-    try {
-      formattedContent = format ? format(content) : content;
-    } catch (err) {
-      console.error('Download format error:', err);
-      return this;
-    }
-    const blobContent =
-      formattedContent instanceof Blob
-        ? formattedContent
-        : new Blob([formattedContent as BlobPart], { type: mimeType });
-    const url = URL.createObjectURL(blobContent);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-    return this;
-  }
-
-  loadFile(
-    inputSelector: string,
-    callback: (result: unknown) => void,
-    options: LoadFileOptions = {}
-  ): this {
-    const {
-      readAs = 'text',
-      parse = null,
-      onError = (err: Error) => console.error('File load error:', err),
-    } = options;
-    const input = document.querySelector(inputSelector) as HTMLInputElement | null;
-    if (!input) {
-      onError(new Error('File input not found'));
-      return this;
-    }
-    const handler = () => {
-      if (input.files && input.files.length) {
-        const file = input.files[0];
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const result = parse
-              ? parse(e.target!.result)
-              : e.target!.result;
-            callback(result);
-            input.value = '';
-          } catch (err) {
-            onError(err as Error);
-          }
-        };
-        reader.onerror = () => {
-          onError(new Error('File read error'));
-        };
-        const methodName = ('readAs' +
-          readAs.charAt(0).toUpperCase() +
-          readAs.slice(1)) as keyof FileReader;
-        (reader[methodName] as Function).call(reader, file);
-      }
-    };
-    input.addEventListener('change', handler, { once: true });
-    return this;
-  }
-
-  // --- Save: collect data from DOM and download as file ---
-  save(options: SaveOptions = {}): this {
-    const {
-      filename = 'data.json',
-      mode = 'nested',
-      format = 'json',
-      space = 2,
-      transform = null,
-    } = options;
-
-    let data: unknown;
-    if (mode === 'flat') {
-      data = this.currentElements.map((el) =>
-        DomUnify._collectFlat(el as Element)
-      );
-    } else if (mode === 'nested') {
-      data = this.currentElements.map((el) =>
-        DomUnify._collectNested(el as Element)
-      );
-    } else {
-      data = this.get({ mode } as GetOptions);
-    }
-    if (Array.isArray(data) && data.length === 1) data = data[0];
-    if (transform) data = transform(data);
-
-    let content: string;
-    let mimeType: string;
-    if (format === 'json') {
-      content = JSON.stringify(data, null, space);
-      mimeType = 'application/json';
-    } else if (format === 'csv') {
-      const esc = (v: unknown) =>
-        '"' + String(v ?? '').replace(/"/g, '""') + '"';
-      if (Array.isArray(data)) {
-        const keys = [
-          ...new Set(
-            data.flatMap((d: unknown) => Object.keys(d as object))
-          ),
-        ];
-        content =
-          keys.map(esc).join(',') +
-          '\n' +
-          data
-            .map((row: unknown) =>
-              keys.map((k) => esc((row as Record<string, unknown>)[k])).join(',')
-            )
-            .join('\n');
-      } else if (data && typeof data === 'object') {
-        const keys = Object.keys(data);
-        content =
-          keys.map(esc).join(',') +
-          '\n' +
-          keys
-            .map((k) => esc((data as Record<string, unknown>)[k]))
-            .join(',');
-      } else {
-        content = String(data ?? '');
-      }
-      mimeType = 'text/csv';
-    } else {
-      content =
-        typeof data === 'string' ? data : JSON.stringify(data);
-      mimeType = 'text/plain';
-    }
-
-    const blob = new Blob([content], { type: mimeType });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    a.click();
-    URL.revokeObjectURL(url);
-
-    this._logStep('save');
-    return this;
-  }
-
-  // --- Load: read file and fill DOM ---
-  load(
-    selector: string | HTMLInputElement,
-    options: LoadOptions = {}
-  ): this {
-    const {
-      parse = 'json',
-      fill = true,
-      onLoad = null,
-      onError = (err: Error) => console.error('[dom-unify] load error:', err),
-    } = options;
-
-    const input =
-      typeof selector === 'string'
-        ? (document.querySelector(selector) as HTMLInputElement | null)
-        : selector;
-    if (!input) {
-      if (onError) onError(new Error('File input not found'));
-      return this;
-    }
-
-    const targets = [...this.currentElements] as Element[];
-    const handler = () => {
-      if (!input.files || !input.files.length) return;
-      const file = input.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          let data: unknown = e.target!.result;
-          if (parse === 'json') data = JSON.parse(data as string);
-          else if (typeof parse === 'function') data = parse(data as string);
-
-          if (fill && data && typeof data === 'object') {
-            if (Array.isArray(data)) {
-              const len = Math.min(targets.length, data.length);
-              for (let i = 0; i < len; i++) {
-                if (data[i] && typeof data[i] === 'object') {
-                  DomUnify._fillElement(targets[i], data[i] as Record<string, unknown>);
-                }
-              }
-            } else {
-              for (const el of targets)
-                DomUnify._fillElement(el, data as Record<string, unknown>);
-            }
-          }
-          if (onLoad) onLoad(data);
-          input.value = '';
-        } catch (err) {
-          if (onError) onError(err as Error);
-        }
-      };
-      reader.onerror = () => {
-        if (onError) onError(new Error('File read error'));
-      };
-      reader.readAsText(file);
-    };
-
-    input.addEventListener('change', handler, { once: true });
-    this._logStep('load');
-    return this;
-  }
-
   // --- Sync: bidirectional DOM ↔ storage ---
   sync(key: string, options: SyncOptions = {}): this {
     if (!key || typeof key !== 'string') return this;
@@ -1844,3 +1614,4 @@ function dom(root?: DomRoot): DomUnify {
 }
 
 export { DomUnify, dom };
+export default dom;
